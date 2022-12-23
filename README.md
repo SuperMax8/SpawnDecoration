@@ -1,8 +1,13 @@
-SpawnDecoration a simple plugin to add cool animated decorations to your minecraft spawn.
----
+SpawnDecoration
+----------------
+A simple plugin to add cool animated decorations to your minecraft spawn.
+
+#
 **Demo video**: https://youtu.be/7_gPurFwPRg
+**Support Discord**: https://discord.gg/PUnTJHThxJ
 
 **How to use it**:
+
 **/spawndecoration** -> getInfo and help of the command  
 **/spawndecoration reload** -> reload the plugin, load and respawn the models  
 **/spawndecoration record <RecordName>** -> start a new record,
