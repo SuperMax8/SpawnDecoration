@@ -39,7 +39,7 @@ public class SpawnDecorationCommand implements CommandExecutor {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(new String[]{
-                "§6SpawnDeocation",
+                "§8[§6SpawnDeocation§8]",
                 "§7Version: " + SpawnDecorationPlugin.version,
                 "§7Records: " + RecordLocationManager.records.size(),
                 "§7Decorations: " + DecorationManager.map.size(),

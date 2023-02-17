@@ -1,5 +1,5 @@
 name: SpawnDecoration
-version: '1.0'
+version: '${project.version}'
 main: fr.supermax_8.spawndecoration.SpawnDecorationPlugin
 api-version: 1.16
 depend: [ModelEngine]

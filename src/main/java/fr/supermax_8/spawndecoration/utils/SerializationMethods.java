@@ -6,7 +6,6 @@ import org.bukkit.World;
 
 public class SerializationMethods {
 
-
     public static String serializedLocation(Location loc) { //Converts location -> String
         return loc.getWorld().getName() + ";" + loc.getX() + ";" + loc.getY() + ";" + loc.getZ() + ";" + loc.getYaw() + ";" + loc.getPitch();
     }
