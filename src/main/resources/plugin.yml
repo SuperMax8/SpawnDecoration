@@ -1,4 +1,4 @@
-name: SpawnDecoration
+name: ModelEngineDecoration
 version: '${project.version}'
 main: fr.supermax_8.spawndecoration.SpawnDecorationPlugin
 api-version: 1.16
@@ -7,5 +7,9 @@ authors: [ SuperMax_8 ]
 description: Plugin to add dynamic decoration in your spawn with ModelEngine
 website: pyritemc.fr
 commands:
-  spawndecoration:
-    permission: spawndecoration.use
+  megdecoration:
+    permission: modelenginedecoration.use
+    aliases:
+      - modelenginedecoration
+      - mdec
+      - spawndecoration

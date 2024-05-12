@@ -2,7 +2,7 @@ package fr.supermax_8.spawndecoration;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
-import fr.supermax_8.spawndecoration.commands.SpawnDecorationCommand;
+import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.utils.TemporaryListener;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
             return;
         }
 
-        if (!ModelEngineAPI.api.getGenerator().isInitialized())
+        if (!ModelEngineAPI.getAPI().getModelGenerator().isInitialized())
             new TemporaryListener<>(ModelRegistrationEvent.class, EventPriority.NORMAL, e -> {
                 new BukkitRunnable() {
                     @Override
@@ -43,7 +43,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
             });
         else loadModelEngineUsers();
 
-        getCommand("spawndecoration").setExecutor(new SpawnDecorationCommand());
+        getCommand("megdecoration").setExecutor(new MegDecorationCommand());
     }
 
     @Override

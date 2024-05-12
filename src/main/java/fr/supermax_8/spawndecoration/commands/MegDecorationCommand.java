@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class SpawnDecorationCommand implements CommandExecutor {
+public class MegDecorationCommand implements CommandExecutor {
 
 
     @Override
@@ -39,12 +39,12 @@ public class SpawnDecorationCommand implements CommandExecutor {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(new String[]{
-                "§8[§6SpawnDeocation§8]",
+                "§8[§6ModelEngineDecoration§8]",
                 "§7Version: " + SpawnDecorationPlugin.version,
                 "§7Records: " + RecordLocationManager.records.size(),
                 "§7Decorations: " + DecorationManager.map.size(),
-                "§f- §7/spawndecoration record <newRecordName>",
-                "§f- §7/spawndecoration reload"
+                "§f- §7/megdecoration record <newRecordName>",
+                "§f- §7/megdecoration reload"
         });
     }
 

@@ -1,8 +1,10 @@
 package fr.supermax_8.spawndecoration.blueprint;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
+import com.ticxo.modelengine.api.nms.entity.wrapper.TrackedEntity;
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -14,20 +16,19 @@ import java.util.List;
 public class TrackDecoration extends BukkitRunnable {
 
     private final List<Location> locs;
-    private final ArmorStand stand;
 
     private Iterator<Location> it;
+    private Dummy<TrackDecoration> decorationDummy;
 
     public TrackDecoration(List<Location> locs, String modelId) {
         this.locs = locs;
         it = locs.iterator();
+        decorationDummy = new Dummy<>();
 
         Location loc = locs.get(0);
-        stand = loc.getWorld().spawn(loc, ArmorStand.class);
-        stand.setInvulnerable(true);
-        stand.setPersistent(false);
+        decorationDummy.setLocation(loc);
         ActiveModel model = ModelEngineAPI.createActiveModel(modelId);
-        ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(stand);
+        ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(decorationDummy);
         modeledEntity.addModel(model, true);
         modeledEntity.setBaseEntityVisible(false);
 
@@ -38,12 +39,12 @@ public class TrackDecoration extends BukkitRunnable {
     public void run() {
         if (!it.hasNext()) it = locs.iterator();
         Location loc = it.next();
-        stand.teleport(loc);
+        decorationDummy.syncLocation(loc);
     }
 
     public void end() {
         cancel();
-        stand.remove();
+        decorationDummy.setRemoved(true);
     }
 
 }

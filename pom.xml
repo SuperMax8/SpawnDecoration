@@ -6,19 +6,19 @@
 
     <groupId>fr.supermax_8.spawndecoration</groupId>
     <artifactId>SpawnDecoration</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
     <packaging>jar</packaging>
 
-    <name>SpawnDecoration</name>
+    <name>ModelEngineDecoration</name>
 
     <description>Plugin to add dynamic decoration in your spawn with ModelEngine</description>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <url>pyritemc.fr</url>
 
     <build>
+        <finalName>ModelEngineDecoration</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -85,8 +85,8 @@
         </dependency>
         <dependency>
             <groupId>com.ticxo.modelengine</groupId>
-            <artifactId>api</artifactId>
-            <version>R3.0.0</version>
+            <artifactId>ModelEngine</artifactId>
+            <version>R4.0.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
