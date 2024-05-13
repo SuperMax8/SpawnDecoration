@@ -32,7 +32,7 @@ public class TrackDecoration extends BukkitRunnable {
         modeledEntity.addModel(model, true);
         modeledEntity.setBaseEntityVisible(false);
 
-        runTaskTimer(SpawnDecorationPlugin.getInstance(), 0, 0);
+        runTaskTimerAsynchronously(SpawnDecorationPlugin.getInstance(), 0, 0);
     }
 
     @Override
