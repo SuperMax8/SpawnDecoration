@@ -14,6 +14,7 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import net.kyori.adventure.text.Component;
@@ -96,12 +97,15 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
+        int count = 0;
+        for (List<StaticDecoration> l : DecorationManager.staticDecoMap.values())
+            count += l.size();
         sender.sendMessage(new String[]{
                 "§8[§6ModelEngineDecoration§8]",
                 "§7Version: " + SpawnDecorationPlugin.version,
                 "§7Records: " + RecordLocationManager.records.size(),
                 "§7TrackedDecorations: " + DecorationManager.trackedDecoMap.size(),
-                "§7StaticDecorations: " + DecorationManager.staticDecoMap.size(),
+                "§7StaticDecorations: " + count,
                 "§f- §7/megdecoration record <newRecordName>",
                 "§f- §7/megdecoration reload"
         });
