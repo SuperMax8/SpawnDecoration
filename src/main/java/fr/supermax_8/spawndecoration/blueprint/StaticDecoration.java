@@ -5,7 +5,9 @@ import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
+import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -23,31 +25,45 @@ public class StaticDecoration {
 
     private String modelId;
     private Location location;
-    private ActiveModel model;
+    private ActiveModel activeModel;
     private Dummy<StaticDecoration> decorationDummy;
+    private boolean end = false;
 
     public StaticDecoration(String modelId, Location location) {
         this.modelId = modelId;
         this.location = location;
 
         decorationDummy = new Dummy<>(this);
-
         decorationDummy.syncLocation(location);
         decorationDummy.getBodyRotationController().setYBodyRot(location.getYaw());
 
-        model = ModelEngineAPI.createActiveModel(modelId);
+        activeModel = ModelEngineAPI.createActiveModel(modelId);
         ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(decorationDummy);
-        modeledEntity.addModel(model, true);
+        activeModel.getMountManager().ifPresent(mountManager -> {
+            mountManager.setCanRide(true);
+            mountManager.setCanDrive(true);
+            modeledEntity.getMountData().setMainMountManager(mountManager);
+        });
+        modeledEntity.addModel(activeModel, true);
         modeledEntity.setBaseEntityVisible(false);
 
+        activeModel.getMountManager().ifPresent(mountManager -> {
+            mountManager.setCanRide(true);
+            modeledEntity.getMountData().setMainMountManager(mountManager);
+        });
         forEachHitboxBlocks(block -> {
             if (!block.getType().isAir()) return;
             block.setType(Material.BARRIER, false);
             barrierHitboxBlocks.put(block.getLocation(), this);
         });
+
+        activeModel.getMountManager().ifPresent(mountManager -> {
+            DriverManager.addDriver(activeModel);
+        });
     }
 
     public void end() {
+        end = true;
         decorationDummy.setRemoved(true);
         forEachHitboxBlocks(block -> {
             if (!block.getType().equals(Material.BARRIER)) return;
@@ -57,7 +73,7 @@ public class StaticDecoration {
     }
 
     private void forEachHitboxBlocks(Consumer<Block> consumer) {
-        Hitbox hitbox = model.getBlueprint().getMainHitbox();
+        Hitbox hitbox = activeModel.getBlueprint().getMainHitbox();
         Hitbox flooredHitbox = new Hitbox(
                 Math.floor(hitbox.getWidth()),
                 Math.floor(hitbox.getHeight()),

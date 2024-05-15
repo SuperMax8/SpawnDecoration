@@ -1,6 +1,10 @@
 package fr.supermax_8.spawndecoration.listeners;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.events.BaseEntityInteractEvent;
+import com.ticxo.modelengine.api.model.ActiveModel;
+import com.ticxo.modelengine.api.mount.controller.impl.AbstractMountController;
+import com.ticxo.modelengine.api.nms.entity.wrapper.MoveController;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
@@ -24,20 +28,52 @@ public class InteractListener implements Listener {
 
     @EventHandler
     public void onMegInteract(BaseEntityInteractEvent event) {
-        if (!event.getAction().equals(BaseEntityInteractEvent.Action.ATTACK)) return;
         Object obj = event.getBaseEntity().getOriginal();
         if (!(obj instanceof StaticDecoration staticDecoration)) return;
         Player player = event.getPlayer();
-        if (!player.hasPermission("modelenginedecoration.use")) return;
         if (!canInteract(event.getPlayer())) return;
-        ItemStack stack = player.getInventory().getItemInMainHand();
-        String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
-        if (modelId == null) {
-            player.sendMessage("§cYou can't break a decoration without a decoration item in hand");
-            return;
-        }
+        switch (event.getAction()) {
+            case INTERACT, INTERACT_ON -> {
+                event.getModel().getMountManager().ifPresent(mountManager -> {
+                    tryDismountOld(player);
+                    mountManager.mountLeastOccupied(player, (entity, mount) -> new AbstractMountController(entity, mount) {
+                        @Override
+                        public void updateDriverMovement(MoveController controller, ActiveModel model) {
+                        }
 
-        removeStaticDeco(event.getBaseEntity().getLocation());
+                        @Override
+                        public void updatePassengerMovement(MoveController controller, ActiveModel model) {
+                            if (input == null) return;
+                            model.getMountManager().ifPresent(manager -> {
+                                if (input.isSneak())
+                                    manager.dismountRider(player);
+                            });
+                        }
+                    }, mountController -> {
+                        mountController.setCanInteractMount(true);
+                        mountController.setCanDamageMount(true);
+                    });
+                });
+            }
+            case ATTACK -> {
+                if (!player.hasPermission("modelenginedecoration.use")) return;
+                ItemStack stack = player.getInventory().getItemInMainHand();
+                String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
+                if (modelId == null) {
+                    player.sendMessage("§cYou can't break a decoration without a decoration item in hand");
+                    return;
+                }
+                removeStaticDeco(event.getBaseEntity().getLocation());
+            }
+        }
+    }
+
+    private void tryDismountOld(Player target) {
+        ActiveModel model = ModelEngineAPI.getMountPairManager().getMountedPair(target.getUniqueId());
+        if (model == null) return;
+        model.getMountManager().ifPresent(mountManager -> {
+            mountManager.dismountRider(target);
+        });
     }
 
     @EventHandler

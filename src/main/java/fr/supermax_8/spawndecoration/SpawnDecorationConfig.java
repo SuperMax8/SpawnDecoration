@@ -1,6 +1,7 @@
 package fr.supermax_8.spawndecoration;
 
 import com.google.gson.Gson;
+import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.blueprint.TrackDecoration;
@@ -59,6 +60,7 @@ public class SpawnDecorationConfig {
     }
 
     public static void unLoad() {
+        DriverManager.clear();
         RecordLocationManager.records.clear();
         DecorationManager.trackedDecoMap.values().forEach(TrackDecoration::end);
         DecorationManager.staticDecoMap.values().forEach(l -> l.forEach(StaticDecoration::end));

@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
+import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.listeners.InteractListener;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
@@ -44,8 +45,8 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
             });
         else loadModelEngineUsers();
 
+        DriverManager.getInstance().initTask();
         getCommand("megdecoration").setExecutor(new MegDecorationCommand());
-
         getServer().getPluginManager().registerEvents(new InteractListener(), this);
     }
 
