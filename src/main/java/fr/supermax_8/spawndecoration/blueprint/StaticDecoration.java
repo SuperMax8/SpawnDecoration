@@ -5,6 +5,7 @@ import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
+import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,6 +33,7 @@ public class StaticDecoration {
         this.location = location;
 
         decorationDummy = new Dummy<>(this);
+        decorationDummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
         decorationDummy.syncLocation(location);
         decorationDummy.getBodyRotationController().setYBodyRot(location.getYaw());
 

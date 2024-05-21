@@ -5,6 +5,7 @@ import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.nms.entity.wrapper.TrackedEntity;
+import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -24,6 +25,7 @@ public class TrackDecoration extends BukkitRunnable {
         this.locs = locs;
         it = locs.iterator();
         decorationDummy = new Dummy<>();
+        decorationDummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
 
         Location loc = locs.get(0);
         decorationDummy.setLocation(loc);

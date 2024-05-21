@@ -27,6 +27,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
         Metrics metrics = new Metrics(this, 17158);
         metrics.addCustomChart(new Metrics.SingleLineChart("numberofdecoration", () -> DecorationManager.trackedDecoMap.size()));
 
+
         if (Bukkit.getPluginManager().getPlugin("ModelEngine") == null) {
             Bukkit.getLogger().warning("ModelEngineDecoration | Plugin turn OFF, ModelEngine is not on the server ! You should have ModelEngine to use this plugin !");
             getServer().getPluginManager().disablePlugin(this);
@@ -56,7 +57,11 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
     }
 
     public void loadModelEngineUsers() {
-        SpawnDecorationConfig.load();
+        try {
+            SpawnDecorationConfig.load();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

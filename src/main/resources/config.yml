@@ -1,0 +1,8 @@
+# ModelEngine decoration
+
+# Default render distance of static & tracked decorations
+renderRadius: 128
+
+
+# DON'T MODIFY
+config-version: 1
