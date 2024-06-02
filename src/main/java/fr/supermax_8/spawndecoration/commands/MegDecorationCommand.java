@@ -7,7 +7,6 @@ import com.ticxo.modelengine.api.model.ModelRegistry;
 import com.ticxo.modelengine.api.model.bone.BoneBehaviorTypes;
 import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
 import com.ticxo.modelengine.api.utils.config.ConfigProperty;
-import dev.triumphteam.gui.builder.gui.PaginatedBuilder;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -32,7 +31,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MegDecorationCommand implements CommandExecutor, TabCompleter {
 
@@ -65,15 +66,14 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                     for (String name : registry.getKeys()) {
                         if (name.startsWith("d_") || name.contains("deco")) {
                             ModelBlueprint blueprint = registry.get(name);
-                            Optional<BlueprintBone> opt = blueprint.getBones().values().stream().filter(bb -> bb.getCachedBehaviorProvider().containsKey(BoneBehaviorTypes.HEAD) ||
-                                    bb.getCachedBehaviorProvider().containsKey(BoneBehaviorTypes.ITEM)
-                            ).findFirst();
-                            if (opt.isEmpty()) continue;
-                            BlueprintBone bone = opt.get();
-                            ItemStack stack = ConfigProperty.ITEM_MODEL.getBaseItem().create(Color.WHITE, bone.getDataId());
-                            GuiItem itm = ItemBuilder.from(stack).setNbt("megdecoration_modelid", name).flags(ItemFlag.values()).name(Component.text(blueprint.getName())).lore(List.of()).asGuiItem(event -> {
-                                event.setCancelled(false);
-                            });
+
+                            ItemStack stack = ConfigProperty.ITEM_MODEL.getBaseItem().create(Color.WHITE, getRelevantDataFromBlueprint(blueprint));
+                            GuiItem itm = ItemBuilder.from(stack)
+                                    .setNbt("megdecoration_modelid", name)
+                                    .flags(ItemFlag.values())
+                                    .name(Component.text(blueprint.getName()))
+                                    .lore(List.of())
+                                    .asGuiItem(event -> event.setCancelled(false));
                             paginatedGui.addItem(itm);
                         }
                     }
@@ -109,6 +109,39 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                 "§f- §7/megdecoration record <newRecordName>",
                 "§f- §7/megdecoration reload"
         });
+    }
+
+    private int getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
+        AtomicReference<BlueprintBone> head = new AtomicReference<>();
+        List<BlueprintBone> bones = blueprint.getBones().values().stream()
+                .filter(bb -> {
+                            Map<BoneBehaviorType<?>, BoneBehaviorType.CachedProvider<?>> types = bb.getCachedBehaviorProvider();
+                            if (types.containsKey(BoneBehaviorTypes.HEAD)) {
+                                head.set(bb);
+                                return true;
+                            }
+                            if (types.containsKey(BoneBehaviorTypes.ITEM) || types.containsKey(BoneBehaviorTypes.GHOST))
+                                return true;
+                            return false;
+                        }
+                ).toList();
+        int id = 0;
+        if (head.get() != null) id = head.get().getDataId();
+        else if (!bones.isEmpty()) {
+            BlueprintBone bestOne = null;
+            for (BlueprintBone bone : bones) {
+                if (bestOne == null) bestOne = bone;
+                double bestOneScale = bestOne.getModelScale().x;
+                double boneScale = bestOne.getModelScale().x;
+                System.out.println(boneScale);
+                if (boneScale > 0 && boneScale < bestOneScale) bestOne = bone;
+            }
+
+            if (bestOne == null) bestOne = bones.get(0);
+            id = bestOne.getDataId();
+        }
+
+        return id;
     }
 
     @Nullable

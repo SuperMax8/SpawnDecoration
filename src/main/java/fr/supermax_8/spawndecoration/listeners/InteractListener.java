@@ -82,17 +82,13 @@ public class InteractListener implements Listener {
         if (!player.hasPermission("modelenginedecoration.use")) return;
         switch (event.getAction()) {
             case LEFT_CLICK_BLOCK -> {
-                StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
-                if (staticDecoration == null) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
-                if (modelId == null) {
-                    event.setCancelled(true);
-                    player.sendMessage("§cYou can't break a decoration without a decoration item in hand");
-                    return;
-                }
+                if (modelId == null) return;
+                event.setCancelled(true);
 
-                if (!canInteract(player)) return;
+                StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
+                if (staticDecoration == null || !canInteract(player)) return;
                 removeStaticDeco(staticDecoration.getLocation());
             }
             case RIGHT_CLICK_BLOCK -> {
