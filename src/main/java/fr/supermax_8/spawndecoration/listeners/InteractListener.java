@@ -34,7 +34,7 @@ public class InteractListener implements Listener {
         if (!canInteract(event.getPlayer())) return;
         switch (event.getAction()) {
             case INTERACT, INTERACT_ON -> {
-                event.getModel().getMountManager().ifPresent(mountManager -> {
+                event.getModel().getMountManager().ifPresentOrElse(mountManager -> {
                     tryDismountOld(player);
                     mountManager.mountLeastOccupied(player, (entity, mount) -> new AbstractMountController(entity, mount) {
                         @Override
@@ -53,9 +53,11 @@ public class InteractListener implements Listener {
                         mountController.setCanInteractMount(true);
                         mountController.setCanDamageMount(true);
                     });
-                });
+                }, () -> staticDecoration.playAnimation("interact"));
             }
             case ATTACK -> {
+                staticDecoration.playAnimation("hit");
+
                 if (!player.hasPermission("modelenginedecoration.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
@@ -79,19 +81,30 @@ public class InteractListener implements Listener {
     @EventHandler
     public void onBlockInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (!player.hasPermission("modelenginedecoration.use")) return;
         switch (event.getAction()) {
             case LEFT_CLICK_BLOCK -> {
+                StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
+                if (staticDecoration == null) return;
+                event.setCancelled(true);
+                staticDecoration.playAnimation("hit");
+
+                if (!player.hasPermission("modelenginedecoration.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) return;
                 event.setCancelled(true);
 
-                StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
-                if (staticDecoration == null || !canInteract(player)) return;
+                if (!canInteract(player)) return;
                 removeStaticDeco(staticDecoration.getLocation());
             }
             case RIGHT_CLICK_BLOCK -> {
+                StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
+                if (staticDecoration != null && canInteract(player)) {
+                    staticDecoration.playAnimation("interact");
+                    return;
+                }
+
+                if (!player.hasPermission("modelenginedecoration.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) return;

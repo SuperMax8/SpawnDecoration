@@ -1,6 +1,7 @@
 package fr.supermax_8.spawndecoration.blueprint;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
 import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -25,6 +26,7 @@ public class StaticDecoration {
     private String modelId;
     private Location location;
     private ActiveModel activeModel;
+    private AnimationHandler animationHandler;
     private Dummy<StaticDecoration> decorationDummy;
     private boolean end = false;
 
@@ -38,6 +40,7 @@ public class StaticDecoration {
         decorationDummy.getBodyRotationController().setYBodyRot(location.getYaw());
 
         activeModel = ModelEngineAPI.createActiveModel(modelId);
+        animationHandler = activeModel.getAnimationHandler();
         ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(decorationDummy);
         activeModel.getMountManager().ifPresent(mountManager -> {
             mountManager.setCanRide(true);
@@ -60,6 +63,10 @@ public class StaticDecoration {
         activeModel.getMountManager().ifPresent(mountManager -> {
             DriverManager.addDriver(activeModel);
         });
+    }
+
+    public void playAnimation(String animation) {
+        animationHandler.playAnimation(animation, 0.1, 0.1, 1, true);
     }
 
     public void end() {
