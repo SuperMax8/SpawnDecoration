@@ -3,7 +3,6 @@ package fr.supermax_8.spawndecoration;
 import com.google.gson.Gson;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
-import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -23,13 +22,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SpawnDecorationConfig {
 
     @Getter
     private static int renderRadius;
 
+    @Getter
+    private static ConcurrentHashMap<String, List<String>> boneBehavior = new ConcurrentHashMap<>();
 
     /**
      * Simple load will be change if I add other decoration type
@@ -38,7 +41,15 @@ public class SpawnDecorationConfig {
         RecordLocationManager.load();
         File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
 
+        boneBehavior.clear();
         try {
+            YamlDocument bonebehaviorConfig = YamlDocument.create(new File(pluginDir, "bonebehavior.yml"));
+            bonebehaviorConfig.getRoutes(false).forEach(r -> {
+                boneBehavior.put(r.join('.'), bonebehaviorConfig.isList(r) ? bonebehaviorConfig.getStringList(r) : new ArrayList<>(){{
+                    add(bonebehaviorConfig.getString(r));
+                }});
+            });
+
             YamlDocument config = YamlDocument.create(
                     new File(pluginDir, "config.yml"),
                     getResourceAsStream("config.yml"),
@@ -95,12 +106,12 @@ public class SpawnDecorationConfig {
     }
 
     public static void unLoad() {
-        DriverManager.clear();
-        RecordLocationManager.records.clear();
-        DecorationManager.trackedDecoMap.values().forEach(TrackDecoration::end);
         DecorationManager.staticDecoMap.values().forEach(l -> l.forEach(StaticDecoration::end));
+        DecorationManager.trackedDecoMap.values().forEach(TrackDecoration::end);
+        RecordLocationManager.records.clear();
         DecorationManager.trackedDecoMap.clear();
         DecorationManager.staticDecoMap.clear();
+        DriverManager.clear();
     }
 
     public static void reload() {

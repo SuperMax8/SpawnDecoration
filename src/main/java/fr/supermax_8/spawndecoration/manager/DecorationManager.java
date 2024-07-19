@@ -29,7 +29,6 @@ public class DecorationManager {
         decorations.add(new StaticDecoration(modelId, loc));
     }
 
-
     public static void writeStaticDecos(StaticDecoList list) {
         File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
         File staticDecorations = new File(pluginDir, "staticDecorations.json");
