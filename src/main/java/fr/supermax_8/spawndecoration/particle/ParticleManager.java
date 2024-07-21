@@ -5,6 +5,7 @@ import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -18,7 +19,7 @@ public class ParticleManager {
     private ParticleManager() {
         instance = this;
         Bukkit.getScheduler().runTaskTimerAsynchronously(SpawnDecorationPlugin.getInstance(), () -> {
-            for (StaticDecoration decoration : decorations)
+            for (StaticDecoration decoration : new LinkedList<>(decorations))
                 for (ParticleSpot particle : decoration.getParticles()) particle.spawnParticle();
         }, 0, 0);
     }

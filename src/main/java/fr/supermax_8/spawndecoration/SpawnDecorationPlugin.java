@@ -6,6 +6,7 @@ import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.listeners.InteractListener;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
+import fr.supermax_8.spawndecoration.particle.ParticleManager;
 import fr.supermax_8.spawndecoration.utils.TemporaryListener;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -46,6 +47,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
             });
         else loadModelEngineUsers();
 
+        ParticleManager.getInstance();
         DriverManager.getInstance().initTask();
         getCommand("megdecoration").setExecutor(new MegDecorationCommand());
         getServer().getPluginManager().registerEvents(new InteractListener(), this);

@@ -26,7 +26,12 @@ public class DecorationManager {
 
     public static void loadStaticDecoration(String modelId, Location loc) {
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(modelId, a -> new ArrayList<>());
-        decorations.add(new StaticDecoration(modelId, loc));
+        try {
+            decorations.add(new StaticDecoration(modelId, loc));
+        } catch (Exception e) {
+            System.out.println("Error while loading decoration: " + modelId + " at " + loc);
+            e.printStackTrace();
+        }
     }
 
     public static void writeStaticDecos(StaticDecoList list) {

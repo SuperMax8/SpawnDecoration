@@ -53,11 +53,11 @@ public class ParticleSpot {
                 parser.addEquation(parts[0], parts[1]);
             }
 
-            System.out.println("Loaded particle spot");
+            /*System.out.println("Loaded particle spot");
             System.out.println("--Particle " + particle.name());
             System.out.println("--from " + from);
             System.out.println("--to " + to);
-            System.out.println("--data " + data);
+            System.out.println("--data " + data);*/
         } catch (Exception e) {
             System.out.println("ERROR WHILE LOAD PARTICLE SPOT: " + spot);
             e.printStackTrace();

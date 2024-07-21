@@ -27,9 +27,11 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,20 +65,33 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                             .create();
 
                     ModelRegistry registry = ModelEngineAPI.getAPI().getModelRegistry();
+                    List<GuiItem> stacks = new ArrayList<>();
                     for (String name : registry.getKeys()) {
                         if (name.startsWith("d_") || name.contains("deco")) {
                             ModelBlueprint blueprint = registry.get(name);
 
-                            ItemStack stack = ConfigProperty.ITEM_MODEL.getBaseItem().create(Color.WHITE, getRelevantDataFromBlueprint(blueprint));
+                            int cmd = getRelevantDataFromBlueprint(blueprint);
+                            ItemStack stack = ConfigProperty.ITEM_MODEL.getBaseItem().create(Color.WHITE, cmd);
                             GuiItem itm = ItemBuilder.from(stack)
                                     .setNbt("megdecoration_modelid", name)
                                     .flags(ItemFlag.values())
                                     .name(Component.text(blueprint.getName()))
-                                    .lore(List.of())
+                                    .lore(List.of(Component.text("§7Preview CustomModelData: §f" + cmd)))
                                     .asGuiItem(event -> event.setCancelled(false));
-                            paginatedGui.addItem(itm);
+                            stacks.add(itm);
                         }
                     }
+
+                    stacks.sort((g1, g2) -> {
+                        String s1 = "", s2 = "";
+                        if (g1.getItemStack().hasItemMeta() && g1.getItemStack().getItemMeta().hasDisplayName())
+                            s1 = g1.getItemStack().getItemMeta().getDisplayName();
+                        if (g2.getItemStack().hasItemMeta() && g2.getItemStack().getItemMeta().hasDisplayName())
+                            s2 = g2.getItemStack().getItemMeta().getDisplayName();
+                        return s1.compareTo(s2);
+                    });
+
+                    stacks.forEach(paginatedGui::addItem);
 
                     paginatedGui.setItem(6, 3, ItemBuilder.from(Material.PAPER).setName("Previous").asGuiItem(event -> {
                         paginatedGui.previous();
@@ -112,28 +127,27 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
     }
 
     private int getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
-        AtomicReference<BlueprintBone> head = new AtomicReference<>();
+        AtomicReference<BlueprintBone> head = new AtomicReference<>(null);
         List<BlueprintBone> bones = blueprint.getBones().values().stream()
                 .filter(bb -> {
                             Map<BoneBehaviorType<?>, BoneBehaviorType.CachedProvider<?>> types = bb.getCachedBehaviorProvider();
+                            if (bb.getDataId() == 0) return false;
                             if (types.containsKey(BoneBehaviorTypes.HEAD)) {
                                 head.set(bb);
-                                return true;
+                                return false;
                             }
-                            if (types.containsKey(BoneBehaviorTypes.ITEM) || types.containsKey(BoneBehaviorTypes.GHOST))
-                                return true;
-                            return false;
+                            return true;
                         }
                 ).toList();
         int id = 0;
-        if (head.get() != null) id = head.get().getDataId();
+        if (head.get() != null)
+            id = head.get().getDataId();
         else if (!bones.isEmpty()) {
             BlueprintBone bestOne = null;
             for (BlueprintBone bone : bones) {
                 if (bestOne == null) bestOne = bone;
-                double bestOneScale = bestOne.getModelScale().x;
-                double boneScale = bestOne.getModelScale().x;
-                System.out.println(boneScale);
+                double bestOneScale = bestOne.getModelScale().length();
+                double boneScale = bestOne.getModelScale().length();
                 if (boneScale > 0 && boneScale < bestOneScale) bestOne = bone;
             }
 

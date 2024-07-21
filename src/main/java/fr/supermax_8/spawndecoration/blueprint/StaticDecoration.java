@@ -8,23 +8,28 @@ import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
+import com.ticxo.modelengine.api.utils.OffsetMode;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
+import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import fr.supermax_8.spawndecoration.particle.ParticleManager;
 import fr.supermax_8.spawndecoration.particle.ParticleSpot;
 import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Getter
 public class StaticDecoration {
@@ -41,7 +46,7 @@ public class StaticDecoration {
     private Dummy<StaticDecoration> decorationDummy;
     private List<Location> lights;
     private boolean end = false;
-    private List<ParticleSpot> particles;
+    private List<ParticleSpot> particles = null;
 
     public StaticDecoration(String modelId, Location location) {
         this.modelId = modelId;
@@ -71,11 +76,13 @@ public class StaticDecoration {
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();
+            bone.tick();
             if (boneId.contains("light")) {
                 if (lights == null) lights = new ArrayList<>();
                 int level = StringUtils.extractAndParseDigits(boneId);
                 if (!XMaterial.LIGHT.isSupported()) continue;
                 Location loc = bone.getLocation().clone();
+
                 Block block = loc.getBlock();
                 if (!block.getType().isAir()) return;
                 lightBlocks.put(loc, this);
@@ -108,7 +115,8 @@ public class StaticDecoration {
 
     public void end() {
         end = true;
-        if (particles != null) ParticleManager.getInstance().removeDecoration(this);
+        if (particles != null)
+            ParticleManager.getInstance().removeDecoration(this);
         decorationDummy.setRemoved(true);
         forEachHitboxBlocks(block -> {
             if (!block.getType().equals(Material.BARRIER)) return;
@@ -126,19 +134,14 @@ public class StaticDecoration {
 
     private void forEachHitboxBlocks(Consumer<Block> consumer) {
         Hitbox hitbox = activeModel.getBlueprint().getMainHitbox();
-        Hitbox flooredHitbox = new Hitbox(
-                Math.floor(hitbox.getWidth()),
-                Math.floor(hitbox.getHeight()),
-                Math.floor(hitbox.getDepth()),
-                Math.floor(hitbox.getEyeHeight())
-        );
-        if (flooredHitbox.getDepth() == 0 || flooredHitbox.getWidth() == 0 || flooredHitbox.getHeight() == 0) return;
-        BoundingBox box = flooredHitbox.createBoundingBox(new Vector(
-                location.getX(), location.getY(), location.getZ()
+        if (Math.floor(hitbox.getHeight()) == 0 || Math.floor(hitbox.getDepth()) == 0 || Math.floor(hitbox.getWidth()) == 0)
+            return;
+        BoundingBox box = hitbox.createBoundingBox(new Vector(
+                location.getX() - 0.5, location.getY() - 0.5, location.getZ() - 0.5
         ));
-        for (int x = (int) box.getMinX(); x <= box.getMaxX(); x++) {
-            for (int y = (int) box.getMinY(); y <= box.getMaxY(); y++) {
-                for (int z = (int) box.getMinZ(); z <= box.getMaxZ(); z++) {
+        for (int x = (int) Math.ceil(box.getMinX()); x <= Math.floor(box.getMaxX()); x++) {
+            for (int y = (int) Math.ceil(box.getMinY()); y <= Math.floor(box.getMaxY()); y++) {
+                for (int z = (int) Math.ceil(box.getMinZ()); z <= Math.floor(box.getMaxZ()); z++) {
                     Block block = location.getWorld().getBlockAt(x, y, z);
                     consumer.accept(block);
                 }
