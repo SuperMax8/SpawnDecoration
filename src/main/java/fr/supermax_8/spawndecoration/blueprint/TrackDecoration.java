@@ -27,7 +27,6 @@ public class TrackDecoration extends BukkitRunnable {
     private Iterator<Location> it;
     private Dummy<TrackDecoration> decorationDummy;
     private Location lastLoc;
-    private ArmorStand display;
 
     public TrackDecoration(List<Location> locs, String modelId, boolean smoothPath) {
         this.locs = smoothPath ? PathUtils.smooth(locs) : locs;
@@ -43,32 +42,19 @@ public class TrackDecoration extends BukkitRunnable {
         modeledEntity.setBaseEntityVisible(false);
 
         runTaskTimerAsynchronously(SpawnDecorationPlugin.getInstance(), 0, 0);
-
-        display = loc.getWorld().spawn(loc, ArmorStand.class);
-        /*display.setItemStack(new ItemStack(Material.STONE));*/
-        display.setPersistent(false);
     }
 
     @Override
     public void run() {
         if (!it.hasNext()) it = locs.iterator();
         Location loc = it.next();
-        /*if (lastLoc == null || lastLoc.distance(loc) > 0.055)*/
         decorationDummy.syncLocation(loc);
-        /*else System.out.println("Skipped");*/
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                display.teleport(loc);
-            }
-        }.runTask(SpawnDecorationPlugin.getInstance());
         lastLoc = loc.clone();
     }
 
     public void end() {
         cancel();
         decorationDummy.setRemoved(true);
-        display.remove();
     }
 
 }
