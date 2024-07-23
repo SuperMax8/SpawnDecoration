@@ -19,9 +19,12 @@ public class PathUtils {
                 lastLoc = loc;
                 continue;
             }
-            Vector direction = loc.toVector().subtract(lastLoc.toVector()).normalize().multiply(avrSectionSpeed(locs, i, 4));
+
+            Vector direction = loc.toVector().subtract(lastLoc.toVector());
+            if (!direction.isZero()) direction.normalize();
+            Vector delta = direction.multiply(avrSectionSpeed(locs, i, 40));
             Location smoothedLoc = lastLoc.clone();
-            smoothedLoc.add(direction);
+            smoothedLoc.add(delta);
             smoothed.add(smoothedLoc);
 
             lastLoc = smoothedLoc;
@@ -55,7 +58,7 @@ public class PathUtils {
 
         double avr = 0;
         for (double length : lengths) avr += length;
-        avr /= lengths.size();
+        avr /= Math.max(lengths.size(), 1);
         return avr;
     }
 

@@ -31,10 +31,10 @@ public class TrackDecoration extends BukkitRunnable {
     public TrackDecoration(List<Location> locs, String modelId, boolean smoothPath) {
         this.locs = smoothPath ? PathUtils.smooth(locs) : locs;
         decorationDummy = new Dummy<>();
-        it = locs.iterator();
+        it = this.locs.iterator();
         decorationDummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
 
-        Location loc = locs.get(0);
+        Location loc = this.locs.get(0);
         decorationDummy.syncLocation(loc);
         ActiveModel model = ModelEngineAPI.createActiveModel(modelId);
         ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(decorationDummy);
