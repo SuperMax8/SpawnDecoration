@@ -45,7 +45,7 @@ public class SpawnDecorationConfig {
         try {
             YamlDocument bonebehaviorConfig = YamlDocument.create(new File(pluginDir, "bonebehavior.yml"));
             bonebehaviorConfig.getRoutes(false).forEach(r -> {
-                boneBehavior.put(r.join('.'), bonebehaviorConfig.isList(r) ? bonebehaviorConfig.getStringList(r) : new ArrayList<>(){{
+                boneBehavior.put(r.join('.'), bonebehaviorConfig.isList(r) ? bonebehaviorConfig.getStringList(r) : new ArrayList<>() {{
                     add(bonebehaviorConfig.getString(r));
                 }});
             });
@@ -74,7 +74,7 @@ public class SpawnDecorationConfig {
             try {
                 for (String key : fc.getKeys(false)) {
                     ConfigurationSection section = fc.getConfigurationSection(key);
-                    DecorationManager.loadTrackedDecoration(key, section.getString("model"), section.getString("record"));
+                    DecorationManager.loadTrackedDecoration(key, section.getString("model"), section.getString("record"), section.getBoolean("smoothPath", true));
                 }
             } catch (Exception e) {
                 Bukkit.getLogger().warning("Error with file " + f.getName() + " !");
@@ -89,8 +89,6 @@ public class SpawnDecorationConfig {
             list.getList().forEach(staticDeco -> {
                 DecorationManager.loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()));
             });
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

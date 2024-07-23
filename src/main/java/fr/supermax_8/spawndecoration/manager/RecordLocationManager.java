@@ -5,6 +5,8 @@ import fr.supermax_8.spawndecoration.utils.FileUtils;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import fr.supermax_8.spawndecoration.utils.TemporaryListener;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -12,9 +14,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -56,12 +60,17 @@ public class RecordLocationManager {
         p.sendMessage("§6Starting record " + recordName + " §7§lClick to end record !");
         List<Location> locs = new ArrayList<>();
         BukkitTask run = new BukkitRunnable() {
+
+            Location lastpos = null;
+            boolean a = false;
+
             @Override
             public void run() {
-                locs.add(p.getLocation().clone());
-                p.sendMessage("§6Adding new Position: §7" + p.getLocation());
+                Location pLoc = p.getLocation().clone();
+                locs.add(pLoc);
             }
         }.runTaskTimer(SpawnDecorationPlugin.getInstance(), 0, 0);
+
         new TemporaryListener<PlayerInteractEvent>(PlayerInteractEvent.class, EventPriority.NORMAL, e -> {
             if (!p.equals(e.getPlayer())) return false;
             try {
@@ -76,8 +85,21 @@ public class RecordLocationManager {
             }
             p.sendMessage("§6End record " + recordName);
             run.cancel();
+
+            /*new BukkitRunnable() {
+                int i = 0;
+                @Override
+                public void run() {
+                    if (i == 20 * 15) cancel();
+                    for (Location loc : smoothed) {
+                        loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 5, 0, 0, 0, 0);
+                    }
+                    i++;
+                }
+            }.runTaskTimer(SpawnDecorationPlugin.getInstance(), 0, 0);*/
             return true;
         });
     }
+
 
 }

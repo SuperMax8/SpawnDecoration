@@ -17,9 +17,9 @@ public class DecorationManager {
     public static ConcurrentHashMap<String, TrackDecoration> trackedDecoMap = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, List<StaticDecoration>> staticDecoMap = new ConcurrentHashMap<>();
 
-    public static void loadTrackedDecoration(String name, String modelId, String recordName) {
+    public static void loadTrackedDecoration(String name, String modelId, String recordName, boolean smoothPath) {
         List<Location> locs = RecordLocationManager.records.get(recordName);
-        TrackDecoration deco = new TrackDecoration(locs, modelId);
+        TrackDecoration deco = new TrackDecoration(locs, modelId, smoothPath);
 
         trackedDecoMap.put(name, deco);
     }
