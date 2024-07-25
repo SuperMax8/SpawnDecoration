@@ -114,7 +114,7 @@ public class InteractListener implements Listener {
                 float yaw = Math.round(playerYaw / 45f) * 45f + 180;
                 Location loc = event.getClickedBlock().getLocation().clone().add(0.5, event.getBlockFace() == BlockFace.DOWN ? -1 : 1, 0.5);
                 loc.setYaw(yaw);
-                if (DecorationManager.staticDecoMap.values().stream().anyMatch(l ->
+                if (DecorationManager.getInstance().getStaticDecoMap().values().stream().anyMatch(l ->
                         l.stream().anyMatch(s ->
                                 s.getLocation().getBlock().getLocation().equals(loc.getBlock().getLocation())))) {
                     player.sendMessage("§cThere is already a decoration here !");
@@ -122,9 +122,9 @@ public class InteractListener implements Listener {
                 }
                 String serializedLocation = SerializationMethods.serializedLocation(loc);
 
-                StaticDecoList decoList = DecorationManager.readStaticDecos();
+                StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
                 decoList.getList().add(new StaticDecoList.StaticDeco(serializedLocation, modelId));
-                DecorationManager.writeStaticDecos(decoList);
+                DecorationManager.getInstance().writeStaticDecos(decoList);
 
                 SpawnDecorationConfig.reload();
             }
@@ -141,14 +141,14 @@ public class InteractListener implements Listener {
     private void removeStaticDeco(Location location) {
         String loc = SerializationMethods.serializedLocation(location);
 
-        StaticDecoList decoList = DecorationManager.readStaticDecos();
+        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
         StaticDecoList.StaticDeco toRemove = null;
         for (StaticDecoList.StaticDeco deco : decoList.getList()) {
             if (deco.getLocation().equals(loc)) toRemove = deco;
         }
         if (toRemove == null) return;
         decoList.getList().remove(toRemove);
-        DecorationManager.writeStaticDecos(decoList);
+        DecorationManager.getInstance().writeStaticDecos(decoList);
         SpawnDecorationConfig.reload();
     }
 

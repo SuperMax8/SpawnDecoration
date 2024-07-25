@@ -3,6 +3,8 @@ version: '${project.version}'
 main: fr.supermax_8.spawndecoration.SpawnDecorationPlugin
 api-version: 1.16
 depend: [ModelEngine]
+softdepend:
+  - Placeh
 authors: [ SuperMax_8 ]
 description: Plugin to add dynamic decoration in your spawn with ModelEngine
 website: pyritemc.fr

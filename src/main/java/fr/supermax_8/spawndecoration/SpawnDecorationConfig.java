@@ -2,15 +2,16 @@ package fr.supermax_8.spawndecoration;
 
 import com.google.gson.Gson;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import fr.supermax_8.spawndecoration.blueprint.Decoration;
 import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
-import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
-import fr.supermax_8.spawndecoration.blueprint.TrackDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.utils.FileUtils;
@@ -21,9 +22,13 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpawnDecorationConfig {
@@ -32,7 +37,10 @@ public class SpawnDecorationConfig {
     private static int renderRadius;
 
     @Getter
-    private static ConcurrentHashMap<String, List<String>> boneBehavior = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, List<String>> particle = new ConcurrentHashMap<>();
+
+    @Getter
+    private static ConcurrentHashMap<String, List<String>> text = new ConcurrentHashMap<>();
 
     /**
      * Simple load will be change if I add other decoration type
@@ -41,14 +49,24 @@ public class SpawnDecorationConfig {
         RecordLocationManager.load();
         File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
 
-        boneBehavior.clear();
+        particle.clear();
+        text.clear();
         try {
-            YamlDocument bonebehaviorConfig = YamlDocument.create(new File(pluginDir, "bonebehavior.yml"));
-            bonebehaviorConfig.getRoutes(false).forEach(r -> {
-                boneBehavior.put(r.join('.'), bonebehaviorConfig.isList(r) ? bonebehaviorConfig.getStringList(r) : new ArrayList<>() {{
-                    add(bonebehaviorConfig.getString(r));
-                }});
-            });
+            YamlDocument bonebehaviorConfig = YamlDocument.create(
+                    new File(pluginDir, "bonebehavior.yml"),
+                    getResourceAsStream("bonebehavior.yml"),
+                    GeneralSettings.builder().build(),
+                    LoaderSettings.builder().setAutoUpdate(true).build(),
+                    DumperSettings.builder().build(),
+                    UpdaterSettings.builder()
+                            .setVersioning(new BasicVersioning("config-version"))
+                            .addIgnoredRoute("1", Route.fromString("particle"))
+                            .addIgnoredRoute("1", Route.fromString("text"))
+                            .build()
+            );
+
+            loadMapFromSection(particle, bonebehaviorConfig.getSection("particle"));
+            loadMapFromSection(text, bonebehaviorConfig.getSection("text"));
 
             YamlDocument config = YamlDocument.create(
                     new File(pluginDir, "config.yml"),
@@ -74,7 +92,7 @@ public class SpawnDecorationConfig {
             try {
                 for (String key : fc.getKeys(false)) {
                     ConfigurationSection section = fc.getConfigurationSection(key);
-                    DecorationManager.loadTrackedDecoration(key, section.getString("model"), section.getString("record"), section.getBoolean("smoothPath", true));
+                    DecorationManager.getInstance().loadTrackedDecoration(key, section.getString("model"), section.getString("record"), section.getBoolean("smoothPath", true));
                 }
             } catch (Exception e) {
                 Bukkit.getLogger().warning("Error with file " + f.getName() + " !");
@@ -87,10 +105,22 @@ public class SpawnDecorationConfig {
         try (FileReader reader = new FileReader(staticDecorations)) {
             StaticDecoList list = new Gson().fromJson(reader, StaticDecoList.class);
             list.getList().forEach(staticDeco -> {
-                DecorationManager.loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()));
+                DecorationManager.getInstance().loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()));
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+
+    private static void loadMapFromSection(Map<String, List<String>> map, Section section) {
+        try {
+            section.getRoutes(false).forEach(r ->
+                    map.put(r.join('.'), section.isList(r) ? section.getStringList(r) : new ArrayList<>() {{
+                        add(section.getString(r));
+                    }}));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -104,11 +134,11 @@ public class SpawnDecorationConfig {
     }
 
     public static void unLoad() {
-        DecorationManager.staticDecoMap.values().forEach(l -> l.forEach(StaticDecoration::end));
-        DecorationManager.trackedDecoMap.values().forEach(TrackDecoration::end);
+        DecorationManager.getInstance().getDecorations().forEach(Decoration::remove);
         RecordLocationManager.records.clear();
-        DecorationManager.trackedDecoMap.clear();
-        DecorationManager.staticDecoMap.clear();
+        DecorationManager.getInstance().getDecorations().clear();
+        DecorationManager.getInstance().getTrackedDecoMap().clear();
+        DecorationManager.getInstance().getStaticDecoMap().clear();
         DriverManager.clear();
     }
 

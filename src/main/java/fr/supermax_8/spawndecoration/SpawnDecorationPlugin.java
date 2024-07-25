@@ -1,14 +1,18 @@
 package fr.supermax_8.spawndecoration;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
 import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.listeners.InteractListener;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
-import fr.supermax_8.spawndecoration.particle.ParticleManager;
 import fr.supermax_8.spawndecoration.utils.TemporaryListener;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.Getter;
+import me.tofaa.entitylib.APIConfig;
+import me.tofaa.entitylib.EntityLib;
+import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,11 +26,26 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
     public static String version;
 
     @Override
+    public void onLoad() {
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().getSettings().reEncodeByDefault(false);
+        PacketEvents.getAPI().load();
+    }
+
+    @Override
     public void onEnable() {
+        PacketEvents.getAPI().init();
+
+        SpigotEntityLibPlatform platform = new SpigotEntityLibPlatform(this);
+        APIConfig settings = new APIConfig(PacketEvents.getAPI())
+                .usePlatformLogger();
+
+        EntityLib.init(platform, settings);
+
         instance = this;
         version = getDescription().getVersion();
         Metrics metrics = new Metrics(this, 17158);
-        metrics.addCustomChart(new Metrics.SingleLineChart("numberofdecoration", () -> DecorationManager.trackedDecoMap.size()));
+        metrics.addCustomChart(new Metrics.SingleLineChart("numberofdecoration", () -> DecorationManager.getInstance().getDecorations().size()));
 
 
         if (Bukkit.getPluginManager().getPlugin("ModelEngine") == null) {
@@ -47,7 +66,6 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
             });
         else loadModelEngineUsers();
 
-        ParticleManager.getInstance();
         DriverManager.getInstance().initTask();
         getCommand("megdecoration").setExecutor(new MegDecorationCommand());
         getServer().getPluginManager().registerEvents(new InteractListener(), this);
@@ -56,6 +74,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         SpawnDecorationConfig.unLoad();
+        PacketEvents.getAPI().terminate();
     }
 
     public void loadModelEngineUsers() {

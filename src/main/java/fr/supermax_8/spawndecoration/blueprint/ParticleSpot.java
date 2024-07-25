@@ -1,6 +1,7 @@
-package fr.supermax_8.spawndecoration.particle;
+package fr.supermax_8.spawndecoration.blueprint;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.particles.ParticleDisplay;
 import com.cryptomorin.xseries.particles.XParticle;
 import fr.supermax_8.spawndecoration.utils.EquationParser;
 import org.bukkit.Location;
@@ -73,6 +74,10 @@ public class ParticleSpot {
 
         if (t == 101) t = 0;
         for (int i = from; i < to; i++) {
+            int count = (int) parser.evaluate("count", t, i);
+            if (count < 0) continue;
+            double extra = parser.evaluate("extra", t, i);
+
             double deltaX = parser.evaluate("x", t, i);
             double deltaY = parser.evaluate("y", t, i);
             double deltaZ = parser.evaluate("z", t, i);
@@ -81,15 +86,13 @@ public class ParticleSpot {
             double offsetY = parser.evaluate("offsetY", t, i);
             double offsetZ = parser.evaluate("offsetZ", t, i);
 
-            int count = (int) parser.evaluate("count", t, i);
-            double extra = parser.evaluate("extra", t, i);
 
             Location spawnLoc = loc.clone().add(deltaX, deltaY, deltaZ);
             ParticleDisplay display = ParticleDisplay.of(particle)
                     .withCount(count)
                     .withExtra(extra)
                     .withLocation(spawnLoc)
-                    .offset(offsetX, offsetY, offsetZ);
+                    .particleDirection(offsetX, offsetY, offsetZ);
             if (data != null) display.withData(data);
             display.spawn();
         }

@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.UUID;
 
@@ -16,14 +17,15 @@ public class DriverManager {
 
     @Getter
     private static final DriverManager instance = new DriverManager();
-    private LinkedList<ActiveModel> activeModels = new LinkedList<>();
+    private final ArrayList<ActiveModel> activeModels = new ArrayList<>();
 
     public DriverManager() {
     }
 
     public void initTask() {
         Bukkit.getScheduler().runTaskTimer(SpawnDecorationPlugin.getInstance(), () -> {
-            for (ActiveModel model : activeModels) {
+            for (ActiveModel model : new LinkedList<>(activeModels)) {
+                if (model.isRemoved() || model.isDestroyed()) activeModels.remove(model);
                 model.getMountManager().ifPresent(mountManager -> {
                     for (Entity passenger : mountManager.getPassengerSeatMap().keySet()) {
                         MountController mountController = getController(passenger.getUniqueId());

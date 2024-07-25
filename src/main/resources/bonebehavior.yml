@@ -1,0 +1,19 @@
+# Particle generator here, each sub-section can be a just text, or list of text
+particle:
+  campfire:
+    - "FLAME__fori=0,3;offsetX=rand(-0.4, 0.4);offsetY=rand(0.1, 0.5);offsetZ=rand(-0.4, 0.4);count=rand(-20, 2)"
+    - "CAMPFIRE_COSY_SMOKE__y=1;offsetX=0;offsetY=0.1;offsetZ=0;extra=1;count=rand(-5, 0)"
+
+
+# Text here, each sub-section can be a just text, or list of text
+text:
+  exampletext: "text"
+  exampletext2:
+    - "text line1"
+    - "text line2"
+
+
+
+
+# DON'T CHANGE OR YOU WILL HAVE PROBLEMS
+config-version: 1

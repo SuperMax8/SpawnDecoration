@@ -27,14 +27,12 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MegDecorationCommand implements CommandExecutor, TabCompleter {
@@ -113,13 +111,13 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         int count = 0;
-        for (List<StaticDecoration> l : DecorationManager.staticDecoMap.values())
+        for (List<StaticDecoration> l : DecorationManager.getInstance().getStaticDecoMap().values())
             count += l.size();
         sender.sendMessage(new String[]{
                 "§8[§6ModelEngineDecoration§8]",
                 "§7Version: " + SpawnDecorationPlugin.version,
                 "§7Records: " + RecordLocationManager.records.size(),
-                "§7TrackedDecorations: " + DecorationManager.trackedDecoMap.size(),
+                "§7TrackedDecorations: " + DecorationManager.getInstance().getTrackedDecoMap().size(),
                 "§7StaticDecorations: " + count,
                 "§f- §7/megdecoration record <newRecordName>",
                 "§f- §7/megdecoration reload"
@@ -163,4 +161,6 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         return List.of("record", "reload", "deco");
     }
+
+
 }
