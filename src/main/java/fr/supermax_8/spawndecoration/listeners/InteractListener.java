@@ -65,7 +65,7 @@ public class InteractListener implements Listener {
                     player.sendMessage("§cYou can't break a decoration without a decoration item in hand");
                     return;
                 }
-                removeStaticDeco(event.getBaseEntity().getLocation());
+                DecorationManager.getInstance().removeStaticDeco(event.getBaseEntity().getLocation());
             }
         }
     }
@@ -95,7 +95,7 @@ public class InteractListener implements Listener {
                 event.setCancelled(true);
 
                 if (!canInteract(player)) return;
-                removeStaticDeco(staticDecoration.getLocation());
+                DecorationManager.getInstance().removeStaticDeco(staticDecoration.getLocation());
             }
             case RIGHT_CLICK_BLOCK -> {
                 StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
@@ -120,13 +120,7 @@ public class InteractListener implements Listener {
                     player.sendMessage("§cThere is already a decoration here !");
                     return;
                 }
-                String serializedLocation = SerializationMethods.serializedLocation(loc);
-
-                StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
-                decoList.getList().add(new StaticDecoList.StaticDeco(serializedLocation, modelId));
-                DecorationManager.getInstance().writeStaticDecos(decoList);
-
-                SpawnDecorationConfig.reload();
+                DecorationManager.getInstance().addStaticDeco(loc, modelId);
             }
         }
     }
@@ -136,20 +130,6 @@ public class InteractListener implements Listener {
         if (l != null && System.currentTimeMillis() - l < 100) return false;
         cooldown.put(player.getUniqueId(), System.currentTimeMillis());
         return true;
-    }
-
-    private void removeStaticDeco(Location location) {
-        String loc = SerializationMethods.serializedLocation(location);
-
-        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
-        StaticDecoList.StaticDeco toRemove = null;
-        for (StaticDecoList.StaticDeco deco : decoList.getList()) {
-            if (deco.getLocation().equals(loc)) toRemove = deco;
-        }
-        if (toRemove == null) return;
-        decoList.getList().remove(toRemove);
-        DecorationManager.getInstance().writeStaticDecos(decoList);
-        SpawnDecorationConfig.reload();
     }
 
 }

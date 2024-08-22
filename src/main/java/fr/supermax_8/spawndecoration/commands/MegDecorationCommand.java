@@ -16,6 +16,7 @@ import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
+import fr.supermax_8.spawndecoration.manager.WEClipboardManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -102,6 +103,15 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
 
                     paginatedGui.open((HumanEntity) sender);
                 }
+                case "copy" -> {
+                    WEClipboardManager.copy((Player) sender, false);
+                }
+                case "cut" -> {
+                    WEClipboardManager.copy((Player) sender, true);
+                }
+                case "paste" -> {
+                    WEClipboardManager.paste((Player) sender);
+                }
             }
         } catch (Exception e) {
             sendHelp(sender);
@@ -120,7 +130,11 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                 "§7TrackedDecorations: " + DecorationManager.getInstance().getTrackedDecoMap().size(),
                 "§7StaticDecorations: " + count,
                 "§f- §7/megdecoration record <newRecordName>",
-                "§f- §7/megdecoration reload"
+                "§f- §7/megdecoration deco §fShow GUI to get static decos",
+                "§f- §7/megdecoration reload §fReload decos",
+                "§f- §7/megdecoration copy §fCopy static decos from Fawe selection",
+                "§f- §7/megdecoration cut §fCut (copy and remove) static decos from Fawe selection",
+                "§f- §7/megdecoration paste §fPaste static decos from deco clipboard",
         });
     }
 
@@ -159,7 +173,7 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        return List.of("record", "reload", "deco");
+        return List.of("record", "reload", "deco", "copy", "cut", "paste");
     }
 
 

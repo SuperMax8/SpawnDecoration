@@ -1,17 +1,20 @@
 package fr.supermax_8.spawndecoration.manager;
 
 import com.google.gson.Gson;
+import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import fr.supermax_8.spawndecoration.blueprint.Decoration;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.blueprint.TrackDecoration;
+import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -77,6 +80,41 @@ public class DecorationManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void addStaticDeco(Location loc, String modelId) {
+        String serializedLocation = SerializationMethods.serializedLocation(loc);
+        addStaticDecos(List.of(new StaticDecoList.StaticDeco(serializedLocation, modelId)));
+    }
+
+    public void addStaticDecos(Collection<StaticDecoList.StaticDeco> decos) {
+        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
+        decoList.getList().addAll(decos);
+        DecorationManager.getInstance().writeStaticDecos(decoList);
+
+        SpawnDecorationConfig.reload();
+    }
+
+    public void removeStaticDeco(Location location) {
+        String loc = SerializationMethods.serializedLocation(location);
+
+        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
+        StaticDecoList.StaticDeco toRemove = null;
+        for (StaticDecoList.StaticDeco deco : decoList.getList()) {
+            if (deco.getLocation().equals(loc)) toRemove = deco;
+        }
+        if (toRemove == null) return;
+        decoList.getList().remove(toRemove);
+        DecorationManager.getInstance().writeStaticDecos(decoList);
+        SpawnDecorationConfig.reload();
+    }
+
+    public void removeStaticDeco(Collection<StaticDecoList.StaticDeco> decos) {
+        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
+        for (StaticDecoList.StaticDeco d : decos)
+            decoList.getList().removeIf(dec -> dec.getLocation().equals(d.getLocation()));
+        DecorationManager.getInstance().writeStaticDecos(decoList);
+        SpawnDecorationConfig.reload();
     }
 
 }
