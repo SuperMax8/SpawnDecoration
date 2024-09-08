@@ -13,12 +13,20 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.manager.WEClipboardManager;
+import fr.supermax_8.spawndecoration.utils.SerializationMethods;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -31,13 +39,12 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MegDecorationCommand implements CommandExecutor, TabCompleter {
 
+    private static HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
@@ -112,11 +119,63 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                 case "paste" -> {
                     WEClipboardManager.paste((Player) sender);
                 }
+                case "list" -> {
+                    Player p = (Player) sender;
+                    StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
+                    p.sendMessage("§7List:");
+                    list.getList().forEach(st -> {
+                        if (args.length >= 2 && !args[1].equals(st.getModelId())) {
+                            return;
+                        }
+                        sendDeco(p, st);
+                    });
+                }
+                case "purge" -> {
+                    Player p = (Player) sender;
+                    StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
+                    ArrayList<StaticDecoList.StaticDeco> toPurge = new ArrayList<>();
+                    list.getList().forEach(staticDeco -> {
+                        if (staticDeco.getModelId().equals(args[1])) {
+                            toPurge.add(staticDeco);
+                        }
+                    });
+                    purgeConfirm.put(p.getUniqueId(), toPurge);
+                    p.sendMessage("§7List:");
+                    for (StaticDecoList.StaticDeco staticDeco : toPurge) {
+                        sendDeco(p, staticDeco);
+                    }
+                    p.sendMessage("§c§lAre you sure you want to purge all theses decorations?");
+                    p.sendMessage("§4/mdec confirmpurge yesImSure");
+                }
+                case "confirmpurge" -> {
+                    Player p = (Player) sender;
+                    if (!purgeConfirm.containsKey(p.getUniqueId())) {
+                        p.sendMessage("§cNothing to purge, /mdec purge <modelId>");
+                        return false;
+                    }
+                    if (!args[1].equals("yesImSure")) {
+                        sender.sendMessage("§cWrong yesImSure !");
+                        return false;
+                    }
+                    DecorationManager.getInstance().removeStaticDeco(purgeConfirm.remove(p.getUniqueId()));
+                }
+                case "teleport" -> {
+                    Player p = (Player) sender;
+                    p.teleport(new Location(Bukkit.getWorld(args[1]), Float.parseFloat(args[2]), Float.parseFloat(args[3]), Float.parseFloat(args[4])));
+                }
             }
         } catch (Exception e) {
             sendHelp(sender);
         }
         return false;
+    }
+
+    private void sendDeco(Player p, StaticDecoList.StaticDeco st) {
+        Location loc = SerializationMethods.deserializedLocation(st.getLocation());
+        TextComponent textComponent = Component.text("§6§l" + st.getModelId() + " §8: §7" + st.getLocation())
+                .hoverEvent(HoverEvent.showText(Component.text("Click to teleport")))
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/mdec teleport " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()));
+        BukkitAudiences.builder(SpawnDecorationPlugin.getInstance()).build().player(p).sendMessage(textComponent);
     }
 
     private void sendHelp(CommandSender sender) {
@@ -135,6 +194,8 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                 "§f- §7/megdecoration copy §fCopy static decos from Fawe selection",
                 "§f- §7/megdecoration cut §fCut (copy and remove) static decos from Fawe selection",
                 "§f- §7/megdecoration paste §fPaste static decos from deco clipboard",
+                "§f- §7/megdecoration list <modelId(optional)> §fList all deco",
+                "§f- §7/megdecoration purge <modelId> §fPurge static decos from all the worls",
         });
     }
 
@@ -173,7 +234,7 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        return List.of("record", "reload", "deco", "copy", "cut", "paste");
+        return List.of("record", "reload", "deco", "copy", "cut", "paste", "purge", "list");
     }
 
 
