@@ -26,7 +26,7 @@ public class StaticDecoration extends Decoration {
     private List<Location> lights;
 
     public StaticDecoration(String modelId, Location location) {
-        super(modelId, location);
+        super(modelId, location, null);
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();

@@ -7,6 +7,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
+import fr.supermax_8.spawndecoration.blueprint.meg.DummySup;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -17,10 +18,11 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public abstract class Decoration {
 
-    protected final Dummy<Decoration> dummy;
+    protected final DummySup dummy;
     protected final ActiveModel activeModel;
     protected final AnimationHandler animationHandler;
     protected final ModeledEntity modeledEntity;
@@ -31,12 +33,12 @@ public abstract class Decoration {
     protected boolean removed = false;
     private short tickHologram = 0;
 
-    public Decoration(String modelId, Location spawnLoc) {
+    public Decoration(String modelId, Location spawnLoc, Supplier<Location> locCalculator) {
         this.modelId = modelId;
 
-        dummy = new Dummy<>(this);
+        dummy = new DummySup(locCalculator);
         dummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
-        dummy.syncLocation(spawnLoc);
+        dummy.setLocation(spawnLoc);
         dummy.getBodyRotationController().setYBodyRot(spawnLoc.getYaw());
 
         activeModel = ModelEngineAPI.createActiveModel(modelId);
