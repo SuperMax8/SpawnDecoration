@@ -120,15 +120,17 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
                     WEClipboardManager.paste((Player) sender);
                 }
                 case "list" -> {
-                    Player p = (Player) sender;
                     StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
-                    p.sendMessage("§7List:");
-                    list.getList().forEach(st -> {
-                        if (args.length >= 2 && !args[1].equals(st.getModelId())) {
-                            return;
+                    sender.sendMessage("§7List:");
+                    int count = 0;
+                    for (StaticDecoList.StaticDeco st : list.getList()) {
+                        if (args.length >= 2 && !st.getModelId().contains(args[1])) {
+                            continue;
                         }
-                        sendDeco(p, st);
-                    });
+                        sendDeco(sender, st);
+                        count++;
+                    }
+                    sender.sendMessage("§7Deco Count: §6" + count);
                 }
                 case "purge" -> {
                     Player p = (Player) sender;
@@ -170,12 +172,12 @@ public class MegDecorationCommand implements CommandExecutor, TabCompleter {
         return false;
     }
 
-    private void sendDeco(Player p, StaticDecoList.StaticDeco st) {
+    private void sendDeco(CommandSender p, StaticDecoList.StaticDeco st) {
         Location loc = SerializationMethods.deserializedLocation(st.getLocation());
         TextComponent textComponent = Component.text("§6§l" + st.getModelId() + " §8: §7" + st.getLocation())
                 .hoverEvent(HoverEvent.showText(Component.text("Click to teleport")))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/mdec teleport " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()));
-        BukkitAudiences.builder(SpawnDecorationPlugin.getInstance()).build().player(p).sendMessage(textComponent);
+        BukkitAudiences.builder(SpawnDecorationPlugin.getInstance()).build().sender(p).sendMessage(textComponent);
     }
 
     private void sendHelp(CommandSender sender) {
