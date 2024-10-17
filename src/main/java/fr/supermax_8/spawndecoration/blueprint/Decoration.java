@@ -36,7 +36,7 @@ public abstract class Decoration {
     public Decoration(String modelId, Location spawnLoc, Supplier<Location> locCalculator) {
         this.modelId = modelId;
 
-        dummy = new DummySup(locCalculator);
+        dummy = new DummySup<>(this, locCalculator);
         dummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
         dummy.setLocation(spawnLoc);
         dummy.getBodyRotationController().setYBodyRot(spawnLoc.getYaw());

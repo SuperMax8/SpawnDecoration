@@ -10,13 +10,15 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.units.qual.N;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 
 public class DummyDataSup extends AbstractEntityData {
 
-    protected final DummySup dummy;
+    protected final DummySup<?> dummy;
     @Getter
     protected final DummyTrackedEntity tracked;
 
@@ -30,7 +32,7 @@ public class DummyDataSup extends AbstractEntityData {
     @Setter
     protected Location location = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
 
-    public DummyDataSup(DummySup dummy) {
+    public DummyDataSup(DummySup<?> dummy) {
         this.dummy = dummy;
         tracked = new DummyTrackedEntity();
         trackingUpdate();
@@ -44,8 +46,9 @@ public class DummyDataSup extends AbstractEntityData {
     }
 
     private void tickUpdate() {
-        if (dummy.getSup() == null) return;
-        Location loc = dummy.getSup().get();
+        Supplier<Location> sup = dummy.getSup();
+        if (sup == null) return;
+        Location loc = sup.get();
         if (loc != null) location = loc;
     }
 

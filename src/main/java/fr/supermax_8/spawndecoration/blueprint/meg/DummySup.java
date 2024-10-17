@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 
 @Getter
 @Setter
-public class DummySup implements BaseEntity<Supplier<Location>> {
+public class DummySup<O> implements BaseEntity<O> {
 
     private Supplier<Location> sup;
     protected final DummyDataSup data;
@@ -39,18 +39,20 @@ public class DummySup implements BaseEntity<Supplier<Location>> {
     protected boolean isJumping;
     protected boolean isFlying;
 
+    protected O original;
     protected UUID uuid;
 
     public DummySup() {
-        this(null);
+        this(null, null);
     }
 
-    public DummySup(Supplier<Location> sup) {
-        this(sup, UUID.randomUUID());
+    public DummySup(O original, Supplier<Location> sup) {
+        this(original, sup, UUID.randomUUID());
     }
 
-    public DummySup(Supplier<Location> sup, UUID id) {
+    public DummySup(O original, Supplier<Location> sup, UUID id) {
         this.sup = sup;
+        this.original = original;
         data = new DummyDataSup(this);
         bodyRotationController = new DefaultBodyRotationController(this);
         moveController = new EmptyMoveController();
@@ -111,8 +113,8 @@ public class DummySup implements BaseEntity<Supplier<Location>> {
     }
 
     @Override
-    public Supplier<Location> getOriginal() {
-        return sup;
+    public O getOriginal() {
+        return original;
     }
 
     @Override
