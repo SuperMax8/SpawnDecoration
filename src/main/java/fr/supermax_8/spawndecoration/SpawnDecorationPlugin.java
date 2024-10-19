@@ -17,6 +17,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import revxrsal.commands.Lamp;
+import revxrsal.commands.bukkit.BukkitLamp;
+import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 public final class SpawnDecorationPlugin extends JavaPlugin {
 
@@ -67,7 +70,10 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
         else loadModelEngineUsers();
 
         DriverManager.getInstance().initTask();
-        getCommand("megdecoration").setExecutor(new MegDecorationCommand());
+
+        Lamp<BukkitCommandActor> lamp = BukkitLamp.builder(this).build();
+        lamp.register(new MegDecorationCommand());
+
         getServer().getPluginManager().registerEvents(new InteractListener(), this);
     }
 

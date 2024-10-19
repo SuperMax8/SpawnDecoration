@@ -105,7 +105,7 @@ public class SpawnDecorationConfig {
         try (FileReader reader = new FileReader(staticDecorations)) {
             StaticDecoList list = new Gson().fromJson(reader, StaticDecoList.class);
             list.getList().forEach(staticDeco -> {
-                DecorationManager.getInstance().loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()));
+                DecorationManager.getInstance().loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()), staticDeco.getTexts());
             });
         } catch (IOException e) {
             throw new RuntimeException(e);

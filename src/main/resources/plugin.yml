@@ -8,10 +8,3 @@ softdepend:
 authors: [ SuperMax_8 ]
 description: Plugin to add dynamic decoration in your spawn with ModelEngine
 website: pyritemc.fr
-commands:
-  megdecoration:
-    permission: modelenginedecoration.use
-    aliases:
-      - modelenginedecoration
-      - mdec
-      - spawndecoration

@@ -16,7 +16,6 @@ import fr.supermax_8.spawndecoration.utils.EntityIdProvider;
 import lombok.Getter;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.tofaa.entitylib.meta.EntityMeta;
 import me.tofaa.entitylib.meta.display.AbstractDisplayMeta;
 import me.tofaa.entitylib.meta.display.TextDisplayMeta;
@@ -125,6 +124,7 @@ public class Hologram {
     public void teleport(Location loc) {
         if (location.equals(loc)) return;
         location = loc.clone();
+        aroundManager.updateAround(around, location);
         WrapperPlayServerEntityTeleport teleport = new WrapperPlayServerEntityTeleport(entityID, new com.github.retrooper.packetevents.protocol.world.Location(
                 loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch()
         ), false);

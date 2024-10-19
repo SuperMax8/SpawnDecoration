@@ -20,7 +20,7 @@ public class TrackDecoration extends Decoration {
                 if (!it.hasNext()) it = this.locations.iterator();
                 return it.next();
             }
-        });
+        }, null);
     }
 
     @Override

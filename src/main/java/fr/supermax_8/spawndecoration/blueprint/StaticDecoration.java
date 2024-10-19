@@ -15,6 +15,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -25,8 +26,8 @@ public class StaticDecoration extends Decoration {
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
     private List<Location> lights;
 
-    public StaticDecoration(String modelId, Location location) {
-        super(modelId, location, null);
+    public StaticDecoration(String modelId, Location location, Map<String, List<String>> texts) {
+        super(modelId, location, null, texts);
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();

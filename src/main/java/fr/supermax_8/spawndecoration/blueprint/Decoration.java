@@ -2,7 +2,6 @@ package fr.supermax_8.spawndecoration.blueprint;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
-import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
@@ -18,8 +17,10 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
+@Getter
 public abstract class Decoration {
 
     protected final DummySup dummy;
@@ -29,17 +30,20 @@ public abstract class Decoration {
     protected final String modelId;
     protected ArrayList<ParticleSpot> particles;
     protected ArrayList<Holo> holograms;
-    @Getter
     protected boolean removed = false;
     private short tickHologram = 0;
+    // TextId : Lines<Text>
+    private Map<String, List<String>> texts;
 
-    public Decoration(String modelId, Location spawnLoc, Supplier<Location> locCalculator) {
+    public Decoration(String modelId, Location spawnLoc, Supplier<Location> locCalculator, Map<String, List<String>> texts) {
         this.modelId = modelId;
+        this.texts = texts;
 
         dummy = new DummySup<>(this, locCalculator);
         dummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
         dummy.setLocation(spawnLoc);
         dummy.getBodyRotationController().setYBodyRot(spawnLoc.getYaw());
+        dummy.getBodyRotationController().setRotationDelay(0);
 
         activeModel = ModelEngineAPI.createActiveModel(modelId);
         animationHandler = activeModel.getAnimationHandler();
@@ -66,18 +70,18 @@ public abstract class Decoration {
                 if (holograms == null) holograms = new ArrayList<>();
                 Location holoSpawn = bone.getLocation();
                 Vector3f rotation = bone.getCachedLeftRotation();
-                holoSpawn.setYaw(rotation.y);
-                holoSpawn.setPitch(rotation.x);
+                holoSpawn.setYaw((float) Math.toDegrees(rotation.y));
+                holoSpawn.setPitch((float) Math.toDegrees(rotation.x));
                 String[] split = boneId.split("__");
                 String textId = split[0].split("_")[1];
-                List<String> texts = SpawnDecorationConfig.getText().get(textId);
+                List<String> lines = texts != null && texts.containsKey(textId) ? texts.get(textId) : SpawnDecorationConfig.getText().get(textId);
                 MiniMessage mm = MiniMessage.miniMessage();
                 Component text = Component.text("");
                 int i = 0;
-                for (String line : texts) {
+                for (String line : lines) {
                     text = text.append(mm.deserialize(line));
                     i++;
-                    if (i < texts.size())
+                    if (i < lines.size())
                         text = text.appendNewline();
                 }
 
@@ -109,7 +113,7 @@ public abstract class Decoration {
                 ModelBone bone = holo.bone;
                 Location loc = holo.bone.getLocation();
                 loc.setPitch((float) Math.toDegrees(bone.getCachedLeftRotation().x));
-                loc.setYaw((float) Math.toDegrees(bone.getCachedLeftRotation().y));
+                loc.setYaw(dummy.getLocation().getYaw() + ((float) Math.toDegrees(bone.getCachedLeftRotation().y)));
                 holo.hologram.teleport(loc);
                 if (holo.containsPlaceholders) {
                     if (tickHologram == 5) {

@@ -33,7 +33,7 @@ public class WEClipboardManager {
             Location loc = SerializationMethods.deserializedLocation(deco.getLocation());
             if (!region.contains(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) continue;
             Location offset = loc.subtract(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
-            offsetedDecos.add(new StaticDecoList.StaticDeco(SerializationMethods.serializedLocation(offset), deco.getModelId()));
+            offsetedDecos.add(new StaticDecoList.StaticDeco(SerializationMethods.serializedLocation(offset), deco.getModelId(), deco.getTexts()));
             decos.add(deco);
         }
 
@@ -62,7 +62,7 @@ public class WEClipboardManager {
         for (StaticDecoList.StaticDeco deco : clipboard) {
             Location offset = SerializationMethods.deserializedLocation(deco.getLocation());
             Location newLoc = offset.add(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
-            decos.add(new StaticDecoList.StaticDeco(SerializationMethods.serializedLocation(newLoc), deco.getModelId()));
+            decos.add(new StaticDecoList.StaticDeco(SerializationMethods.serializedLocation(newLoc), deco.getModelId(), deco.getTexts()));
         }
 
         DecorationManager.getInstance().addStaticDecos(decos);

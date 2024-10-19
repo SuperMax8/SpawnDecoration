@@ -13,11 +13,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 public class DecorationManager {
 
@@ -47,10 +46,10 @@ public class DecorationManager {
         this.decorations.add(deco);
     }
 
-    public void loadStaticDecoration(String modelId, Location loc) {
+    public void loadStaticDecoration(String modelId, Location loc, Map<String, List<String>> texts) {
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(modelId, a -> new ArrayList<>());
         try {
-            StaticDecoration d = new StaticDecoration(modelId, loc);
+            StaticDecoration d = new StaticDecoration(modelId, loc, texts);
             decorations.add(d);
             this.decorations.add(d);
         } catch (Exception e) {
@@ -82,39 +81,40 @@ public class DecorationManager {
         }
     }
 
-    public void addStaticDeco(Location loc, String modelId) {
+    public synchronized void editStaticDecos(Consumer<StaticDecoList> edit) {
+        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
+        edit.accept(decoList);
+        DecorationManager.getInstance().writeStaticDecos(decoList);
+        SpawnDecorationConfig.reload();
+    }
+
+    public void addStaticDeco(Location loc, String modelId, Map<String, List<String>> texts) {
         String serializedLocation = SerializationMethods.serializedLocation(loc);
-        addStaticDecos(List.of(new StaticDecoList.StaticDeco(serializedLocation, modelId)));
+        addStaticDecos(List.of(new StaticDecoList.StaticDeco(serializedLocation, modelId, texts)));
     }
 
     public void addStaticDecos(Collection<StaticDecoList.StaticDeco> decos) {
-        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
-        decoList.getList().addAll(decos);
-        DecorationManager.getInstance().writeStaticDecos(decoList);
-
-        SpawnDecorationConfig.reload();
+        editStaticDecos(decolist -> decolist.getList().addAll(decos));
     }
 
     public void removeStaticDeco(Location location) {
         String loc = SerializationMethods.serializedLocation(location);
 
-        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
-        StaticDecoList.StaticDeco toRemove = null;
-        for (StaticDecoList.StaticDeco deco : decoList.getList()) {
-            if (deco.getLocation().equals(loc)) toRemove = deco;
-        }
-        if (toRemove == null) return;
-        decoList.getList().remove(toRemove);
-        DecorationManager.getInstance().writeStaticDecos(decoList);
-        SpawnDecorationConfig.reload();
+        editStaticDecos(decoList -> {
+            StaticDecoList.StaticDeco toRemove = null;
+            for (StaticDecoList.StaticDeco deco : decoList.getList()) {
+                if (deco.getLocation().equals(loc)) toRemove = deco;
+            }
+            if (toRemove == null) return;
+            decoList.getList().remove(toRemove);
+        });
     }
 
     public void removeStaticDeco(Collection<StaticDecoList.StaticDeco> decos) {
-        StaticDecoList decoList = DecorationManager.getInstance().readStaticDecos();
-        for (StaticDecoList.StaticDeco d : decos)
-            decoList.getList().removeIf(dec -> dec.getLocation().equals(d.getLocation()));
-        DecorationManager.getInstance().writeStaticDecos(decoList);
-        SpawnDecorationConfig.reload();
+        editStaticDecos(decoList -> {
+            for (StaticDecoList.StaticDeco d : decos)
+                decoList.getList().removeIf(dec -> dec.getLocation().equals(d.getLocation()));
+        });
     }
 
 }
