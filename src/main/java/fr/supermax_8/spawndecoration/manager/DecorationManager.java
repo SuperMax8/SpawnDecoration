@@ -73,10 +73,10 @@ public class DecorationManager {
         File staticDecorations = new File(pluginDir, "staticDecorations.json");
         if (!staticDecorations.exists()) return new StaticDecoList(new ArrayList<>());
         try (FileReader reader = new FileReader(staticDecorations)) {
-            return new Gson().fromJson(reader, StaticDecoList.class);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+            StaticDecoList list = new Gson().fromJson(reader, StaticDecoList.class);
+            if (list == null) list = new StaticDecoList(new ArrayList<>());
+            return list;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
