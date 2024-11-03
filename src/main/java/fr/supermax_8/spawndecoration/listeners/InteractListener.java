@@ -7,7 +7,9 @@ import com.ticxo.modelengine.api.mount.controller.impl.AbstractMountController;
 import com.ticxo.modelengine.api.nms.entity.wrapper.MoveController;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
+import fr.supermax_8.spawndecoration.events.InteractStaticDecorationEvent;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -21,7 +23,42 @@ import java.util.UUID;
 
 public class InteractListener implements Listener {
 
-    HashMap<UUID, Long> cooldown = new HashMap<>();
+    private HashMap<UUID, Long> cooldown = new HashMap<>();
+
+    private void interact(Player player, StaticDecoration staticDecoration) {
+        InteractStaticDecorationEvent interactEvent = new InteractStaticDecorationEvent(player, staticDecoration, InteractStaticDecorationEvent.InteractionType.INTERACT);
+        Bukkit.getPluginManager().callEvent(interactEvent);
+
+        if (!interactEvent.isCancelled())
+            staticDecoration.getActiveModel().getMountManager().ifPresentOrElse(mountManager -> {
+                tryDismountOld(player);
+                mountManager.mountLeastOccupied(player, (entity, mount) -> new AbstractMountController(entity, mount) {
+                    @Override
+                    public void updateDriverMovement(MoveController controller, ActiveModel model) {
+                    }
+
+                    @Override
+                    public void updatePassengerMovement(MoveController controller, ActiveModel model) {
+                        if (input == null) return;
+                        model.getMountManager().ifPresent(manager -> {
+                            if (input.isSneak())
+                                manager.dismountRider(player);
+                        });
+                    }
+                }, mountController -> {
+                    mountController.setCanInteractMount(true);
+                    mountController.setCanDamageMount(true);
+                });
+            }, () -> staticDecoration.playAnimation("interact"));
+    }
+
+    private void hit(Player player, StaticDecoration staticDecoration) {
+        InteractStaticDecorationEvent interactEvent = new InteractStaticDecorationEvent(player, staticDecoration, InteractStaticDecorationEvent.InteractionType.HIT);
+        Bukkit.getPluginManager().callEvent(interactEvent);
+
+        if (!interactEvent.isCancelled())
+            staticDecoration.playAnimation("hit");
+    }
 
     @EventHandler
     public void onMegInteract(BaseEntityInteractEvent event) {
@@ -31,29 +68,10 @@ public class InteractListener implements Listener {
         if (!canInteract(event.getPlayer())) return;
         switch (event.getAction()) {
             case INTERACT, INTERACT_ON -> {
-                event.getModel().getMountManager().ifPresentOrElse(mountManager -> {
-                    tryDismountOld(player);
-                    mountManager.mountLeastOccupied(player, (entity, mount) -> new AbstractMountController(entity, mount) {
-                        @Override
-                        public void updateDriverMovement(MoveController controller, ActiveModel model) {
-                        }
-
-                        @Override
-                        public void updatePassengerMovement(MoveController controller, ActiveModel model) {
-                            if (input == null) return;
-                            model.getMountManager().ifPresent(manager -> {
-                                if (input.isSneak())
-                                    manager.dismountRider(player);
-                            });
-                        }
-                    }, mountController -> {
-                        mountController.setCanInteractMount(true);
-                        mountController.setCanDamageMount(true);
-                    });
-                }, () -> staticDecoration.playAnimation("interact"));
+                interact(player, staticDecoration);
             }
             case ATTACK -> {
-                staticDecoration.playAnimation("hit");
+                hit(player, staticDecoration);
 
                 if (!player.hasPermission("modelenginedecoration.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
@@ -78,12 +96,13 @@ public class InteractListener implements Listener {
     @EventHandler
     public void onBlockInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        if (!canInteract(event.getPlayer())) return;
         switch (event.getAction()) {
             case LEFT_CLICK_BLOCK -> {
                 StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
                 if (staticDecoration == null) return;
                 event.setCancelled(true);
-                staticDecoration.playAnimation("hit");
+                hit(player, staticDecoration);
 
                 if (!player.hasPermission("modelenginedecoration.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
@@ -91,13 +110,12 @@ public class InteractListener implements Listener {
                 if (modelId == null) return;
                 event.setCancelled(true);
 
-                if (!canInteract(player)) return;
                 DecorationManager.getInstance().removeStaticDeco(staticDecoration.getLocation());
             }
             case RIGHT_CLICK_BLOCK -> {
                 StaticDecoration staticDecoration = StaticDecoration.getBarrierHitboxBlocks().get(event.getClickedBlock().getLocation());
-                if (staticDecoration != null && canInteract(player)) {
-                    staticDecoration.playAnimation("interact");
+                if (staticDecoration != null) {
+                    interact(player, staticDecoration);
                     return;
                 }
 
@@ -105,7 +123,6 @@ public class InteractListener implements Listener {
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) return;
-                if (!canInteract(player)) return;
 
                 float playerYaw = player.getLocation().getYaw();
                 float yaw = Math.round(playerYaw / 45f) * 45f + 180;
