@@ -62,7 +62,9 @@ public class WEClipboardManager {
         for (StaticDecoList.StaticDeco deco : clipboard) {
             Location offset = SerializationMethods.deserializedLocation(deco.getLocation());
             Location newLoc = offset.add(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
+            newLoc.setWorld(pLoc.getWorld());
             decos.add(new StaticDecoList.StaticDeco(SerializationMethods.serializedLocation(newLoc), deco.getModelId(), deco.getTexts()));
+            p.sendMessage("§7Deco §e" + deco.getModelId() + " §7pasted: §e" + newLoc.getWorld().getName() + " " + newLoc.getBlockX() + " " + newLoc.getBlockY() + " " + newLoc.getBlockZ());
         }
 
         DecorationManager.getInstance().addStaticDecos(decos);

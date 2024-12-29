@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @CommandPermission("modelenginedecoration.use")
-@Command({"modelenginedecoration", "mdec"})
+@Command({"modelenginedecoration", "mdec", "hendek"})
 public class MegDecorationCommand {
 
     private HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
@@ -64,6 +64,30 @@ public class MegDecorationCommand {
         actor.reply("§6MegDecoration Reload...");
         SpawnDecorationConfig.reload();
         actor.reply("§6MegDecoration Reload Done");
+    }
+
+    @Subcommand("near")
+    public void near(Player actor, double radius) {
+        near(actor, radius, null);
+    }
+
+    @Subcommand("near")
+    public void near(Player actor, double radius, String modelId) {
+        actor.sendMessage("§7Near decorations:");
+
+        Location pLoc = actor.getLocation();
+        StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
+        int count = 0;
+        for (StaticDecoList.StaticDeco st : list.getList()) {
+            Location decLoc = SerializationMethods.deserializedLocation(st.getLocation());
+            if (decLoc.getWorld() != pLoc.getWorld() || decLoc.distance(pLoc) > radius ||
+                    (modelId != null && !st.getModelId().toLowerCase().contains(modelId.toLowerCase()))
+            ) continue;
+
+            sendDeco(actor, st);
+            count++;
+        }
+        actor.sendMessage("§7Deco Count: §6" + count);
     }
 
     @Subcommand("deco")
