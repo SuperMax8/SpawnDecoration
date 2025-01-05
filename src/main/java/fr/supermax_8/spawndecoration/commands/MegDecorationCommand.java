@@ -207,11 +207,13 @@ public class MegDecorationCommand {
         DecorationManager.getInstance().removeStaticDeco(list);
     }
 
+    @CommandPermission("mdec.teleport")
     @Subcommand("teleport")
     public void teleport(Player p, World world, double x, double y, double z) {
         p.teleport(new Location(world, x, y, z));
     }
 
+    @CommandPermission("mdec.text")
     @Subcommand("text")
     public void text(Player p) {
         StaticDecoration closest = getClosestDeco(p.getLocation());
@@ -237,6 +239,7 @@ public class MegDecorationCommand {
         });
     }
 
+    @CommandPermission("mdec.text")
     @Subcommand("text add")
     public void textAdd(Player p, String textId, String text) {
         StaticDecoration closest = getClosestDeco(p.getLocation());
@@ -260,6 +263,7 @@ public class MegDecorationCommand {
         p.sendMessage("§6New line added: §r" + text);
     }
 
+    @CommandPermission("mdec.text")
     @Subcommand("text clear")
     public void textClear(Player p, String textId) {
         StaticDecoration closest = getClosestDeco(p.getLocation());
