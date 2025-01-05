@@ -47,18 +47,20 @@ import java.util.concurrent.atomic.AtomicReference;
 @Command({"modelenginedecoration", "mdec", "hendek"})
 public class MegDecorationCommand {
 
-    private HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
+    private final HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
 
     @CommandPlaceholder
     public void cmd(BukkitCommandActor actor) {
         sendHelp(actor.sender());
     }
 
+    @CommandPermission("mdec.record")
     @Subcommand("record")
     public void record(Player p, String record) {
         RecordLocationManager.startRecord(p, record);
     }
 
+    @CommandPermission("mdec.reload")
     @Subcommand("reload")
     public void reload(CommandActor actor) {
         actor.reply("§6MegDecoration Reload...");
@@ -171,6 +173,7 @@ public class MegDecorationCommand {
         actor.reply("§7Deco Count: §6" + count);
     }
 
+    @CommandPermission("mdec.purge")
     @Subcommand("purge")
     public void purge(Player p, String modelId) {
         StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
@@ -189,6 +192,7 @@ public class MegDecorationCommand {
         p.sendMessage("§4/mdec confirmpurge true");
     }
 
+    @CommandPermission("mdec.purge")
     @Subcommand("confirmpurge")
     public void confirmPurge(Player p, boolean imSure) {
         if (!purgeConfirm.containsKey(p.getUniqueId())) {
