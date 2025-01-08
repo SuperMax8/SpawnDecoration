@@ -1,5 +1,6 @@
 package fr.supermax_8.spawndecoration.blueprint;
 
+import com.github.retrooper.packetevents.util.Quaternion4f;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -13,6 +14,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.TextDisplay;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -69,12 +71,18 @@ public abstract class Decoration {
             } else if (boneId.startsWith("text")) {
                 if (holograms == null) holograms = new ArrayList<>();
                 Location holoSpawn = bone.getLocation();
-                Vector3f rotation = bone.getCachedLeftRotation();
+                Vector3f rotation = bone.getParent().getCachedLeftRotation();
                 holoSpawn.setYaw((float) Math.toDegrees(rotation.y));
                 holoSpawn.setPitch((float) Math.toDegrees(rotation.x));
-                String[] split = boneId.split("__");
-                String textId = split[0].split("_")[1];
-                List<String> lines = texts != null && texts.containsKey(textId) ? texts.get(textId) : SpawnDecorationConfig.getText().get(textId);
+                String[] split = boneId.split("_", 2);
+                String textId = split[1];
+                SpawnDecorationConfig.Text confText = SpawnDecorationConfig.getText().get(textId);
+                if (confText == null) {
+                    System.out.println("Conf text doesn't exist !! textId: " + textId);
+                    continue;
+                }
+                List<String> lines = texts != null && texts.containsKey(textId) ? texts.get(textId) : confText.lines();
+                if (lines == null) lines = new ArrayList<>();
                 MiniMessage mm = MiniMessage.miniMessage();
                 Component text = Component.text("");
                 int i = 0;
@@ -86,14 +94,16 @@ public abstract class Decoration {
                 }
 
                 Hologram hologram = new Hologram(holoSpawn);
+                hologram.setInterpolationDurationRotation(1);
+                hologram.setInterpolationDurationTransformation(1);
                 hologram.setText(text);
-                hologram.setAlignment(TextDisplay.TextAlignment.valueOf(split[1].toUpperCase()));
-                hologram.setBillboard(Display.Billboard.valueOf(split[2].toUpperCase()));
-                hologram.setShadow(Boolean.parseBoolean(split[3]));
-                hologram.setSeeThroughBlocks(Boolean.parseBoolean(split[4]));
-                String[] bgArgb = split[5].split("_");
-                hologram.setBackgroundColor(Integer.parseInt(bgArgb[0]), Integer.parseInt(bgArgb[1]), Integer.parseInt(bgArgb[2]), Integer.parseInt(bgArgb[3]));
-                float scale = Float.parseFloat(split[6]) / 100.0f;
+                hologram.setAlignment(confText.alignment());
+                hologram.setBillboard(confText.billboard());
+                hologram.setShadow(confText.shadow());
+                hologram.setSeeThroughBlocks(confText.seeThroughBlocks());
+                int[] bgColor = confText.bgArgb();
+                hologram.setBackgroundColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
+                float scale = confText.scale();
                 hologram.setScale(new com.github.retrooper.packetevents.util.Vector3f(scale, scale, scale));
 
                 holograms.add(new Holo(hologram, bone, hologram.containsPlaceholder()));
@@ -112,17 +122,19 @@ public abstract class Decoration {
             for (Holo holo : holograms) {
                 ModelBone bone = holo.bone;
                 Location loc = holo.bone.getLocation();
-                loc.setPitch((float) Math.toDegrees(bone.getCachedLeftRotation().x));
-                loc.setYaw(dummy.getLocation().getYaw() + ((float) Math.toDegrees(bone.getCachedLeftRotation().y)));
+                Quaternion4f left = convertQuaternionJomlToPE(bone.getGlobalLeftRotation());
+                Quaternion4f right = convertQuaternionJomlToPE(bone.getGlobalRightRotation());
+                holo.hologram.setLeftRotation(left);
+                holo.hologram.setRightRotation(right);
+                holo.hologram.update();
+                loc.setYaw(dummy.getLocation().getYaw());
                 holo.hologram.teleport(loc);
-                if (holo.containsPlaceholders) {
-                    if (tickHologram == 5) {
-                        holo.hologram.update();
-                        tickHologram = 0;
-                    } else tickHologram++;
-                }
             }
         }
+    }
+
+    private Quaternion4f convertQuaternionJomlToPE(Quaternionf quaternionf) {
+        return new Quaternion4f(quaternionf.x, quaternionf.y, quaternionf.z, quaternionf.w);
     }
 
     public void remove() {

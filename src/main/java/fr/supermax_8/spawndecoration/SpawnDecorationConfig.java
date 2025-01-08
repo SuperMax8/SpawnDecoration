@@ -21,6 +21,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.TextDisplay;
 
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +42,7 @@ public class SpawnDecorationConfig {
     private static ConcurrentHashMap<String, List<String>> particle = new ConcurrentHashMap<>();
 
     @Getter
-    private static ConcurrentHashMap<String, List<String>> text = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Text> text = new ConcurrentHashMap<>();
 
     /**
      * Simple load will be change if I add other decoration type
@@ -66,7 +68,30 @@ public class SpawnDecorationConfig {
             );
 
             loadMapFromSection(particle, bonebehaviorConfig.getSection("particle"));
-            loadMapFromSection(text, bonebehaviorConfig.getSection("text"));
+            Section texts = bonebehaviorConfig.getSection("text");
+            try {
+                texts.getRoutes(false).forEach(r -> {
+                    if (texts.isSection(r)) {
+                        Section textSection = texts.getSection(r);
+                        List<String> lines = textSection.getStringList("lines", List.of("Caelum aka SuperLion is the best mcmmorpg", "default text"));
+                        TextDisplay.TextAlignment alignment = TextDisplay.TextAlignment.valueOf(textSection.getString("alignment", "CENTER").toUpperCase());
+                        Display.Billboard billboard = Display.Billboard.valueOf(textSection.getString("billboard", "FIXED").toUpperCase());
+                        boolean shadow = textSection.getBoolean("shadow", false);
+                        boolean seeThroughBlocks = textSection.getBoolean("seeThroughBlocks", false);
+                        String[] bgColor = textSection.getString("bgColor", "0;0;0;0").split(";");
+                        int[] bgArgb = new int[4];
+                        int i = 0;
+                        for (String c : bgColor) {
+                            bgArgb[i] = Integer.parseInt(c);
+                            i++;
+                        }
+                        float scale = textSection.getDouble("scale", 1.0).floatValue();
+                        text.put(textSection.getNameAsString(), new Text(lines, alignment, billboard, shadow, seeThroughBlocks, bgArgb, scale));
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             YamlDocument config = YamlDocument.create(
                     new File(pluginDir, "config.yml"),
@@ -142,6 +167,10 @@ public class SpawnDecorationConfig {
     public static void reload() {
         unLoad();
         load();
+    }
+
+    public record Text(List<String> lines, TextDisplay.TextAlignment alignment, Display.Billboard billboard, boolean shadow, boolean seeThroughBlocks, int[] bgArgb, float scale) {
+
     }
 
 }

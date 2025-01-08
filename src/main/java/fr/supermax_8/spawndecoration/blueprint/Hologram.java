@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration.blueprint;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.util.Quaternion4f;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
@@ -73,6 +74,12 @@ public class Hologram {
     @Setter
     @Getter
     private Vector3f translation = new Vector3f(0, 0, 0);
+    @Setter
+    @Getter
+    private Quaternion4f leftRotation = new Quaternion4f(0, 0, 0, 1);
+    @Setter
+    @Getter
+    private Quaternion4f rightRotation = new Quaternion4f(0, 0, 0, 1);
     @Setter
     @Getter
     private Vector3f scale = new Vector3f(1, 1, 1);
@@ -161,6 +168,8 @@ public class Hologram {
         meta.setTextOpacity(this.textOpacity);
         meta.setShadow(this.shadow);
         meta.setSeeThrough(this.seeThroughBlocks);
+        meta.setLeftRotation(leftRotation);
+        meta.setRightRotation(rightRotation);
         setMetaAlignment(meta);
         return meta;
     }
