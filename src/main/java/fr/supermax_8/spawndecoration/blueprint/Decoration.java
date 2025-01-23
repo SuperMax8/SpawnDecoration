@@ -71,9 +71,6 @@ public abstract class Decoration {
             } else if (boneId.startsWith("text")) {
                 if (holograms == null) holograms = new ArrayList<>();
                 Location holoSpawn = bone.getLocation();
-                Vector3f rotation = bone.getParent().getCachedLeftRotation();
-                holoSpawn.setYaw((float) Math.toDegrees(rotation.y));
-                holoSpawn.setPitch((float) Math.toDegrees(rotation.x));
                 String[] split = boneId.split("_", 2);
                 String textId = split[1];
                 SpawnDecorationConfig.Text confText = SpawnDecorationConfig.getText().get(textId);

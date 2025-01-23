@@ -1,6 +1,7 @@
 package fr.supermax_8.spawndecoration.commands;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.generator.assets.ItemModelData;
 import com.ticxo.modelengine.api.generator.blueprint.BlueprintBone;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import com.ticxo.modelengine.api.model.ModelRegistry;
@@ -24,14 +25,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.CommandPlaceholder;
 import revxrsal.commands.annotation.Optional;
@@ -106,13 +107,12 @@ public class MegDecorationCommand {
             if (name.startsWith("d_") || name.contains("deco")) {
                 ModelBlueprint blueprint = registry.get(name);
 
-                int cmd = getRelevantDataFromBlueprint(blueprint);
-                ItemStack stack = ConfigProperty.ITEM_MODEL.getBaseItem().create(Color.WHITE, cmd);
+                ItemModelData modelData = getRelevantDataFromBlueprint(blueprint);
+                ItemStack stack = createItem(modelData);
                 GuiItem itm = ItemBuilder.from(stack)
                         .setNbt("megdecoration_modelid", name)
                         .flags(ItemFlag.values())
                         .name(Component.text(blueprint.getName()))
-                        .lore(List.of(Component.text("§7Preview CustomModelData: §f" + cmd)))
                         .asGuiItem(event -> event.setCancelled(false));
                 stacks.add(itm);
             }
@@ -335,37 +335,65 @@ public class MegDecorationCommand {
         });
     }
 
-    private int getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
+    private ItemModelData getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
         AtomicReference<BlueprintBone> head = new AtomicReference<>(null);
         List<BlueprintBone> bones = blueprint.getBones().values().stream()
                 .filter(bb -> {
                             Map<BoneBehaviorType<?>, BoneBehaviorType.CachedProvider<?>> types = bb.getCachedBehaviorProvider();
-                            if (bb.getDataId() == 0) return false;
-                            if (types.containsKey(BoneBehaviorTypes.HEAD)) {
+                            if (types.containsKey(BoneBehaviorTypes.HEAD) && types.containsKey(BoneBehaviorTypes.ITEM)) {
                                 head.set(bb);
                                 return false;
                             }
                             return true;
                         }
                 ).toList();
-        int id = 0;
-        if (head.get() != null)
-            id = head.get().getDataId();
-        else if (!bones.isEmpty()) {
+        ItemModelData modelData = new ItemModelData();
+        if (head.get() != null) {
+            modelData = head.get().getModelData();
+            //System.out.println("HeadBone -> model: " + blueprint.getName() + " bone: " + head.get().getName());
+        } else if (!bones.isEmpty()) {
             BlueprintBone bestOne = null;
             for (BlueprintBone bone : bones) {
                 if (bestOne == null) bestOne = bone;
                 double bestOneScale = bestOne.getModelScale().length();
                 double boneScale = bestOne.getModelScale().length();
-                if (boneScale > 0 && boneScale < bestOneScale) bestOne = bone;
+                if (bone.getCachedBehaviorProvider().containsKey(BoneBehaviorTypes.ITEM) && boneScale > 0 && boneScale < bestOneScale)
+                    bestOne = bone;
             }
 
-            if (bestOne == null) bestOne = bones.get(0);
-            id = bestOne.getDataId();
+            // System.out.println("Bone -> model: " + blueprint.getName() + " bone: " + bestOne.getName());
+            modelData = bestOne.getModelData();
         }
 
-        return id;
+        return modelData;
     }
 
+/*    private boolean hasModel(BlueprintBone bone) {
+        try {
+            bone.getModelData().createItemStack();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }*/
+
+
+    private ItemStack createItem(ItemModelData imd) {
+        ItemStack stack = new ItemStack(Material.BONE);
+        try {
+            NamespacedKey itemModel;
+            if (imd.getSingleComposite() != null) {
+                itemModel = imd.getSingleComposite().model();
+            } else {
+                System.out.println("" + imd.getMultiModels().getSubModels().stream().findFirst().get().getId());
+                itemModel = NamespacedKey.fromString(imd.getMultiModels().getSubModels().stream().findFirst().get().getId());
+            }
+            ItemMeta meta = stack.getItemMeta();
+            meta.setItemModel(itemModel);
+            stack.setItemMeta(meta);
+        } catch (Exception e) {
+        }
+        return stack;
+    }
 
 }

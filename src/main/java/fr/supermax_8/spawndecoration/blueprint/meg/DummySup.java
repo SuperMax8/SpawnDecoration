@@ -2,8 +2,10 @@ package fr.supermax_8.spawndecoration.blueprint.meg;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.entity.BaseEntity;
+import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.entity.data.IEntityData;
 import com.ticxo.modelengine.api.nms.entity.EntityHandler;
+import com.ticxo.modelengine.api.nms.entity.HitboxEntity;
 import com.ticxo.modelengine.api.nms.entity.wrapper.BodyRotationController;
 import com.ticxo.modelengine.api.nms.entity.wrapper.LookController;
 import com.ticxo.modelengine.api.nms.entity.wrapper.MoveController;
@@ -97,18 +99,18 @@ public class DummySup<O> implements BaseEntity<O> {
     public void setForceViewing(Player player, boolean flag) {
         if (flag) {
             setForceHidden(player, false);
-            data.getTracked().addForcedPairing(player);
+            data.getTracked().addForcedPairing(player.getUniqueId());
         } else {
-            data.getTracked().removeForcedPairing(player);
+            data.getTracked().removeForcedPairing(player.getUniqueId());
         }
     }
 
     public void setForceHidden(Player player, boolean flag) {
         if (flag) {
             setForceViewing(player, false);
-            data.getTracked().addForcedHidden(player);
+            data.getTracked().addForcedHidden(player.getUniqueId());
         } else {
-            data.getTracked().removeForcedHidden(player);
+            data.getTracked().removeForcedHidden(player.getUniqueId());
         }
     }
 
@@ -204,7 +206,17 @@ public class DummySup<O> implements BaseEntity<O> {
     }
 
     @Override
+    public boolean hurt(HitboxEntity hitbox, @Nullable HumanEntity player, Object nmsDamageCause, float damage) {
+        return false;
+    }
+
+    @Override
     public EntityHandler.InteractionResult interact(HumanEntity player, EquipmentSlot slot) {
+        return null;
+    }
+
+    @Override
+    public EntityHandler.InteractionResult interact(HitboxEntity hitbox, HumanEntity player, EquipmentSlot slot) {
         return null;
     }
 
