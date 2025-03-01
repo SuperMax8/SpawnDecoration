@@ -33,7 +33,6 @@ public abstract class Decoration {
     protected ArrayList<ParticleSpot> particles;
     protected ArrayList<Holo> holograms;
     protected boolean removed = false;
-    private short tickHologram = 0;
     // TextId : Lines<Text>
     private Map<String, List<String>> texts;
 

@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.checkerframework.checker.units.qual.N;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -127,6 +125,11 @@ public class DummyDataSup extends AbstractEntityData {
     @Override
     public Set<UUID> getStopTracking() {
         return ImmutableSet.copyOf(stopTracking);
+    }
+
+    @Override
+    public boolean hasTracking() {
+        return !this.asyncTracking.isEmpty();
     }
 
     public int getRenderRadius() {

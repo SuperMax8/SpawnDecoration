@@ -2,7 +2,6 @@ package fr.supermax_8.spawndecoration.blueprint.meg;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.entity.BaseEntity;
-import com.ticxo.modelengine.api.entity.Dummy;
 import com.ticxo.modelengine.api.entity.data.IEntityData;
 import com.ticxo.modelengine.api.nms.entity.EntityHandler;
 import com.ticxo.modelengine.api.nms.entity.HitboxEntity;
@@ -18,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -43,6 +43,8 @@ public class DummySup<O> implements BaseEntity<O> {
 
     protected O original;
     protected UUID uuid;
+
+    protected BoundingBox box = new BoundingBox();
 
     public DummySup() {
         this(null, null);
@@ -263,6 +265,11 @@ public class DummySup<O> implements BaseEntity<O> {
     @Override
     public float getMaxHealth() {
         return 20;
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return box;
     }
 
 }

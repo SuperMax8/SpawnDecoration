@@ -49,10 +49,20 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MegDecorationCommand {
 
     private final HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
+    private final HashMap<UUID, UUID> selectedMegDec = new HashMap<>();
 
     @CommandPlaceholder
     public void cmd(BukkitCommandActor actor) {
         sendHelp(actor.sender());
+    }
+
+    @Subcommand("select")
+    public void select(Player p) {
+        DecorationManager.getInstance().getStaticDecoMap().values().forEach(sd -> {
+            sd.forEach(staticDecoration -> {
+
+            });
+        });
     }
 
     @CommandPermission("mdec.record")

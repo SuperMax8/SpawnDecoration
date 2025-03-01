@@ -1,6 +1,5 @@
 package fr.supermax_8.spawndecoration;
 
-import com.google.gson.Gson;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
@@ -25,8 +24,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.TextDisplay;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,7 +127,7 @@ public class SpawnDecorationConfig {
 
         StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
         list.getList().forEach(staticDeco -> {
-            DecorationManager.getInstance().loadStaticDecoration(staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()), staticDeco.getTexts());
+            DecorationManager.getInstance().loadStaticDecoration(staticDeco.getId(), staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()), staticDeco.getTexts());
         });
     }
 
@@ -156,7 +153,7 @@ public class SpawnDecorationConfig {
     }
 
     public static void unLoad() {
-        DecorationManager.getInstance().getDecorations().forEach(Decoration::remove);
+        DecorationManager.getInstance().getDecorations().values().forEach(Decoration::remove);
         RecordLocationManager.records.clear();
         DecorationManager.getInstance().getDecorations().clear();
         DecorationManager.getInstance().getTrackedDecoMap().clear();
@@ -169,7 +166,8 @@ public class SpawnDecorationConfig {
         load();
     }
 
-    public record Text(List<String> lines, TextDisplay.TextAlignment alignment, Display.Billboard billboard, boolean shadow, boolean seeThroughBlocks, int[] bgArgb, float scale) {
+    public record Text(List<String> lines, TextDisplay.TextAlignment alignment, Display.Billboard billboard,
+                       boolean shadow, boolean seeThroughBlocks, int[] bgArgb, float scale) {
 
     }
 
