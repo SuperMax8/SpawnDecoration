@@ -33,7 +33,7 @@ public class WEClipboardManager {
             Location loc = SerializationMethods.deserializedLocation(deco.getLocation());
             if (!region.contains(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) continue;
             Location offset = loc.subtract(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
-            offsetedDecos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(offset), deco.getModelId(), deco.getTexts()));
+            offsetedDecos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(offset), deco.getModelId(), deco.getScale(), deco.getRotation(), deco.getTexts()));
             decos.add(deco);
         }
 
@@ -63,7 +63,7 @@ public class WEClipboardManager {
             Location offset = SerializationMethods.deserializedLocation(deco.getLocation());
             Location newLoc = offset.add(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
             newLoc.setWorld(pLoc.getWorld());
-            decos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(newLoc), deco.getModelId(), deco.getTexts()));
+            decos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(newLoc), deco.getModelId(), deco.getScale(), deco.getRotation(), deco.getTexts()));
             p.sendMessage("§7Deco §e" + deco.getModelId() + " §7pasted: §e" + newLoc.getWorld().getName() + " " + newLoc.getBlockX() + " " + newLoc.getBlockY() + " " + newLoc.getBlockZ());
         }
 

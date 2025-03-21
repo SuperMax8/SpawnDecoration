@@ -11,6 +11,7 @@ import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.joml.Quaternionf;
 
 import java.io.*;
 import java.util.*;
@@ -37,18 +38,18 @@ public class DecorationManager {
         }, 0, 0);
     }
 
-    public void loadTrackedDecoration(String name, String modelId, String recordName, boolean smoothPath) {
+    public void loadTrackedDecoration(UUID uuid, String name, String modelId, String recordName, boolean smoothPath) {
         List<Location> locs = RecordLocationManager.records.get(recordName);
-        TrackDecoration deco = new TrackDecoration(locs, modelId, smoothPath);
+        TrackDecoration deco = new TrackDecoration(uuid, locs, modelId, smoothPath);
 
         trackedDecoMap.put(name, deco);
         this.decorations.put(deco.getDummy().getUUID(), deco);
     }
 
-    public void loadStaticDecoration(UUID id, String modelId, Location loc, Map<String, List<String>> texts) {
+    public void loadStaticDecoration(UUID id, String modelId, Location loc, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(modelId, a -> new ArrayList<>());
         try {
-            StaticDecoration d = new StaticDecoration(modelId, loc, texts);
+            StaticDecoration d = new StaticDecoration(id, modelId, loc, scale, rotation, texts);
             decorations.add(d);
             this.decorations.put(id, d);
         } catch (Exception e) {
@@ -76,6 +77,8 @@ public class DecorationManager {
             if (list == null) list = new StaticDecoList(new ArrayList<>());
             list.getList().forEach(staticDeco -> {
                 if (staticDeco.getId() == null) staticDeco.setId(UUID.randomUUID());
+                if (staticDeco.getRotation() == null) staticDeco.setRotation(new Quaternionf());
+                if (staticDeco.getScale() <= 0) staticDeco.setScale(1);
             });
             return list;
         } catch (Exception e) {
@@ -90,9 +93,9 @@ public class DecorationManager {
         SpawnDecorationConfig.reload();
     }
 
-    public void addStaticDeco(Location loc, String modelId, Map<String, List<String>> texts) {
+    public void addStaticDeco(Location loc, String modelId, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
         String serializedLocation = SerializationMethods.serializedLocation(loc);
-        addStaticDecos(List.of(new StaticDecoList.StaticDeco(UUID.randomUUID(), serializedLocation, modelId, texts)));
+        addStaticDecos(List.of(new StaticDecoList.StaticDeco(UUID.randomUUID(), serializedLocation, modelId, scale, rotation, texts)));
     }
 
     public void addStaticDecos(Collection<StaticDecoList.StaticDeco> decos) {

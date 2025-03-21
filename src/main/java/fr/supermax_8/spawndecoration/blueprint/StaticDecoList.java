@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration.blueprint;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +24,16 @@ public class StaticDecoList {
         private UUID id;
         private String location;
         private String modelId;
+        private double scale;
+        private Quaternionf rotation;
         private Map<String, List<String>> texts;
 
-        public StaticDeco(UUID id, String location, String modelId, Map<String, List<String>> texts) {
+        public StaticDeco(UUID id, String location, String modelId, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
             this.id = id;
             this.location = location;
             this.modelId = modelId;
+            this.scale = scale;
+            this.rotation = rotation;
             this.texts = texts;
         }
 

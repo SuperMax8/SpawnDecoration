@@ -17,13 +17,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.joml.Quaternionf;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public class InteractListener implements Listener {
 
-    private HashMap<UUID, Long> cooldown = new HashMap<>();
+    private final HashMap<UUID, Long> cooldown = new HashMap<>();
 
     private void interact(Player player, StaticDecoration staticDecoration) {
         InteractStaticDecorationEvent interactEvent = new InteractStaticDecorationEvent(player, staticDecoration, InteractStaticDecorationEvent.InteractionType.INTERACT);
@@ -134,7 +135,7 @@ public class InteractListener implements Listener {
                     player.sendMessage("§cThere is already a decoration here !");
                     return;
                 }
-                DecorationManager.getInstance().addStaticDeco(loc, modelId, null);
+                DecorationManager.getInstance().addStaticDeco(loc, modelId, 1, new Quaternionf(), null);
             }
         }
     }
