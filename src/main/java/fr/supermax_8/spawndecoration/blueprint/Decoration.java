@@ -20,11 +20,13 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 @Getter
 public abstract class Decoration {
 
+    protected final UUID uuid;
     protected final DummySup dummy;
     protected final ActiveModel activeModel;
     protected final AnimationHandler animationHandler;
@@ -33,15 +35,15 @@ public abstract class Decoration {
     protected ArrayList<ParticleSpot> particles;
     protected ArrayList<Holo> holograms;
     protected boolean removed = false;
-    private short tickHologram = 0;
     // TextId : Lines<Text>
-    private Map<String, List<String>> texts;
+    private final Map<String, List<String>> texts;
 
-    public Decoration(String modelId, Location spawnLoc, Supplier<Location> locCalculator, Map<String, List<String>> texts) {
+    public Decoration(UUID uuid, String modelId, Location spawnLoc, Supplier<Location> locCalculator, Map<String, List<String>> texts) {
+        this.uuid = uuid;
         this.modelId = modelId;
         this.texts = texts;
 
-        dummy = new DummySup<>(this, locCalculator);
+        dummy = new DummySup<>(this, locCalculator, uuid);
         dummy.setRenderRadius(SpawnDecorationConfig.getRenderRadius());
         dummy.setLocation(spawnLoc);
         dummy.getBodyRotationController().setYBodyRot(spawnLoc.getYaw());

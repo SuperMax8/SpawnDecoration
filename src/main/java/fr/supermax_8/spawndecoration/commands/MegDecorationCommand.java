@@ -19,6 +19,7 @@ import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.manager.WEClipboardManager;
+import fr.supermax_8.spawndecoration.utils.HotbarEditor;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -33,6 +34,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.CommandPlaceholder;
 import revxrsal.commands.annotation.Optional;
@@ -49,10 +52,124 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MegDecorationCommand {
 
     private final HashMap<UUID, List<StaticDecoList.StaticDeco>> purgeConfirm = new HashMap<>();
+    private final HashMap<UUID, UUID> selectedMegDec = new HashMap<>();
 
     @CommandPlaceholder
     public void cmd(BukkitCommandActor actor) {
         sendHelp(actor.sender());
+    }
+
+    @Subcommand("select")
+    public void select(Player p) {
+        DecorationManager.getInstance().getStaticDecoMap().values().forEach(sd -> {
+            sd.forEach(staticDecoration -> {
+                getClosestDeco(p.getLocation());
+            });
+        });
+    }
+
+    private ItemStack itm(Material material, String displayName) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(displayName);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void editmoverotate(Player editor, UUID uuid, double dx, double dy, double dz, double dscale, float drx, float dry, float drz, boolean resetRotate) {
+        DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
+            for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
+                if (!deco.getId().equals(uuid))
+                    continue;
+                Location loc = SerializationMethods.deserializedLocation(deco.getLocation());
+                loc.add(dx, dy, dz);
+                deco.setLocation(SerializationMethods.serializedLocation(loc));
+                deco.setScale(deco.getScale() + dscale);
+                if (resetRotate)
+                    deco.getRotation().set(new Quaternionf());
+                else
+                    deco.getRotation().rotateXYZ(
+                            (float) Math.toRadians(drx),
+                            (float) Math.toRadians(dry),
+                            (float) Math.toRadians(drz)
+                    );
+                Vector3f angle = new Vector3f();
+                deco.getRotation().getEulerAnglesXYZ(angle);
+                editor.sendMessage("Edit: ");
+                editor.sendMessage("§8- §7Position XYZ: §6" + loc.getX() + " " + loc.getY() + " " + loc.getZ());
+                editor.sendMessage("§8- §7Rotation XYZ: §6" + Math.toDegrees(angle.x) + " " + Math.toDegrees(angle.y) + " " + Math.toDegrees(angle.z));
+                editor.sendMessage("§8- §7Scale: §6" + deco.getScale());
+                break;
+            }
+        });
+    }
+
+    @Subcommand({"moverotate", "mr"})
+    public void moverotate(Player p) {
+        StaticDecoration closest = getClosestDeco(p.getLocation());
+        if (closest == null) {
+            p.sendMessage("§cThere is no close decoration !");
+            return;
+        }
+        UUID id = closest.getUuid();
+        HotbarEditor editor = new HotbarEditor(p)
+                .addItem(0, itm(Material.RED_WOOL, "MOVE X"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0.1, 0, 0, 0, 0, 0, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, -0.1, 0, 0, 0, 0, 0, 0, false);
+                    });
+                })
+                .addItem(1, itm(Material.ORANGE_WOOL, "MOVE Y"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0.1, 0, 0, 0, 0, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, -0.1, 0, 0, 0, 0, 0, false);
+                    });
+                })
+                .addItem(2, itm(Material.YELLOW_WOOL, "MOVE Y"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0.1, 0, 0, 0, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, -0.1, 0, 0, 0, 0, false);
+                    });
+                })
+                .addItem(3, itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0.1, 0, 0, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, -0.1, 0, 0, 0, false);
+                    });
+                })
+                .addItem(4, itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 11.25f, 0, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, -11.25f, 0, 0, false);
+                    });
+                })
+                .addItem(5, itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, 11.25f, 0, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, -11.25f, 0, false);
+                    });
+                })
+                .addItem(6, itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 11.25f, false);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, -11.25f, false);
+                    });
+                })
+                .addItem(7, itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
+                    itm.leftClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 0, true);
+                    }).rightClick(() -> {
+                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 0, true);
+                    });
+                })
+                .init();
     }
 
     @CommandPermission("mdec.record")
@@ -340,7 +457,7 @@ public class MegDecorationCommand {
         List<BlueprintBone> bones = blueprint.getBones().values().stream()
                 .filter(bb -> {
                             Map<BoneBehaviorType<?>, BoneBehaviorType.CachedProvider<?>> types = bb.getCachedBehaviorProvider();
-                            if (types.containsKey(BoneBehaviorTypes.HEAD) && types.containsKey(BoneBehaviorTypes.ITEM)) {
+                            if (bb.isRenderByDefault() && types.containsKey(BoneBehaviorTypes.HEAD) && types.containsKey(BoneBehaviorTypes.ITEM)) {
                                 head.set(bb);
                                 return false;
                             }
@@ -350,33 +467,15 @@ public class MegDecorationCommand {
         ItemModelData modelData = new ItemModelData();
         if (head.get() != null) {
             modelData = head.get().getModelData();
-            //System.out.println("HeadBone -> model: " + blueprint.getName() + " bone: " + head.get().getName());
         } else if (!bones.isEmpty()) {
-            BlueprintBone bestOne = null;
             for (BlueprintBone bone : bones) {
-                if (bestOne == null) bestOne = bone;
-                double bestOneScale = bestOne.getModelScale().length();
-                double boneScale = bestOne.getModelScale().length();
-                if (bone.getCachedBehaviorProvider().containsKey(BoneBehaviorTypes.ITEM) && boneScale > 0 && boneScale < bestOneScale)
-                    bestOne = bone;
+                if (bone.isRenderByDefault())
+                    return bone.getModelData();
             }
-
-            // System.out.println("Bone -> model: " + blueprint.getName() + " bone: " + bestOne.getName());
-            modelData = bestOne.getModelData();
         }
 
         return modelData;
     }
-
-/*    private boolean hasModel(BlueprintBone bone) {
-        try {
-            bone.getModelData().createItemStack();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }*/
-
 
     private ItemStack createItem(ItemModelData imd) {
         ItemStack stack = new ItemStack(Material.BONE);
