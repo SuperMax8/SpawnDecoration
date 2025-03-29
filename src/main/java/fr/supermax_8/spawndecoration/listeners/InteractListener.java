@@ -135,7 +135,7 @@ public class InteractListener implements Listener {
                     player.sendMessage("§cThere is already a decoration here !");
                     return;
                 }
-                DecorationManager.getInstance().addStaticDeco(loc, modelId, 1, new Quaternionf(), null);
+                DecorationManager.getInstance().addStaticDeco(loc, modelId, null, 1, new Quaternionf(), null);
             }
         }
     }

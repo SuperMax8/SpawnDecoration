@@ -46,10 +46,10 @@ public class DecorationManager {
         this.decorations.put(deco.getDummy().getUUID(), deco);
     }
 
-    public void loadStaticDecoration(UUID id, String modelId, Location loc, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
+    public void loadStaticDecoration(UUID id, String modelId, String defaultAnimation, Location loc, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(modelId, a -> new ArrayList<>());
         try {
-            StaticDecoration d = new StaticDecoration(id, modelId, loc, scale, rotation, texts);
+            StaticDecoration d = new StaticDecoration(id, modelId, defaultAnimation, loc, scale, rotation, texts);
             decorations.add(d);
             this.decorations.put(id, d);
         } catch (Exception e) {
@@ -93,9 +93,9 @@ public class DecorationManager {
         SpawnDecorationConfig.reload();
     }
 
-    public void addStaticDeco(Location loc, String modelId, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
+    public void addStaticDeco(Location loc, String modelId, String defaultAnimation, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
         String serializedLocation = SerializationMethods.serializedLocation(loc);
-        addStaticDecos(List.of(new StaticDecoList.StaticDeco(UUID.randomUUID(), serializedLocation, modelId, scale, rotation, texts)));
+        addStaticDecos(List.of(new StaticDecoList.StaticDeco(UUID.randomUUID(), serializedLocation, modelId, defaultAnimation, scale, rotation, texts)));
     }
 
     public void addStaticDecos(Collection<StaticDecoList.StaticDeco> decos) {

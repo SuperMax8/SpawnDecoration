@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+// V1
 public class HotbarEditor {
 
     private final Player player;

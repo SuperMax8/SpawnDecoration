@@ -68,6 +68,26 @@ public class MegDecorationCommand {
         });
     }
 
+    @Subcommand({"setdefaultanimation", "setdanim"})
+    public void setDefaultAnimation(Player p, String animation) {
+        StaticDecoration closest = getClosestDeco(p.getLocation());
+        if (closest == null) {
+            p.sendMessage("§cThere is no close decoration !");
+            return;
+        }
+        if (animation.equalsIgnoreCase("null")) animation = null;
+        UUID uuid = closest.getUuid();
+        String finalAnimation = animation;
+        DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
+            for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
+                if (!deco.getId().equals(uuid))
+                    continue;
+                deco.setDefaultAnimation(finalAnimation);
+                break;
+            }
+        });
+    }
+
     private ItemStack itm(Material material, String displayName) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();

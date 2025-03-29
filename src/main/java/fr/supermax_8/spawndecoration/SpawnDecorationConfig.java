@@ -128,7 +128,7 @@ public class SpawnDecorationConfig {
 
         StaticDecoList list = DecorationManager.getInstance().readStaticDecos();
         list.getList().forEach(staticDeco -> {
-            DecorationManager.getInstance().loadStaticDecoration(staticDeco.getId(), staticDeco.getModelId(), SerializationMethods.deserializedLocation(staticDeco.getLocation()), staticDeco.getScale(), staticDeco.getRotation(), staticDeco.getTexts());
+            DecorationManager.getInstance().loadStaticDecoration(staticDeco.getId(), staticDeco.getModelId(), staticDeco.getDefaultAnimation(), SerializationMethods.deserializedLocation(staticDeco.getLocation()), staticDeco.getScale(), staticDeco.getRotation(), staticDeco.getTexts());
         });
     }
 

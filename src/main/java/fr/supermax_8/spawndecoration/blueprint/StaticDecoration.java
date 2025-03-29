@@ -1,6 +1,8 @@
 package fr.supermax_8.spawndecoration.blueprint;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.ticxo.modelengine.api.animation.ModelState;
+import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
 import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import com.ticxo.modelengine.api.model.bone.SimpleManualAnimator;
@@ -29,7 +31,7 @@ public class StaticDecoration extends Decoration {
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
     private List<Location> lights;
 
-    public StaticDecoration(UUID uuid, String modelId, Location location, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
+    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
         super(uuid, modelId, location, null, texts);
 
         getActiveModel().setScale(scale);
@@ -39,6 +41,8 @@ public class StaticDecoration extends Decoration {
             bone.setManualAnimator(anim);
             bone.tick();
         });
+        if (defaultAnimation != null)
+            getActiveModel().getAnimationHandler().setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defaultAnimation, 0.1, 0.1, 1));
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();
