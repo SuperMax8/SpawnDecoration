@@ -31,18 +31,32 @@ public class StaticDecoration extends Decoration {
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
     private List<Location> lights;
 
-    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
+    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
         super(uuid, modelId, location, null, texts);
 
-        getActiveModel().setScale(scale);
-        getActiveModel().getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
+        activeModel.setScale(scale);
+        activeModel.getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
             SimpleManualAnimator anim = new SimpleManualAnimator();
             anim.getRotation().set(rotation);
             bone.setManualAnimator(anim);
             bone.tick();
         });
+
+        if (boneTransformations != null)
+            boneTransformations.forEach((k, v) -> {
+                activeModel.getBone(k).ifPresent(bone -> {
+                    SimpleManualAnimator anim = new SimpleManualAnimator();
+                    anim.getRotation().set(v.getRotation());
+                    anim.getPosition().set(v.getPosition());
+                    anim.getScale().set(v.getScale());
+                    bone.setManualAnimator(anim);
+                    bone.tick();
+                    bone.setVisible(v.isVisible());
+                });
+            });
+
         if (defaultAnimation != null)
-            getActiveModel().getAnimationHandler().setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defaultAnimation, 0.1, 0.1, 1));
+            activeModel.getAnimationHandler().setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defaultAnimation, 0.1, 0.1, 1));
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();

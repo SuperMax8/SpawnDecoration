@@ -6,6 +6,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.mount.controller.impl.AbstractMountController;
 import com.ticxo.modelengine.api.nms.entity.wrapper.MoveController;
 import dev.triumphteam.gui.components.util.ItemNbt;
+import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.events.InteractStaticDecorationEvent;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
@@ -135,7 +136,7 @@ public class InteractListener implements Listener {
                     player.sendMessage("§cThere is already a decoration here !");
                     return;
                 }
-                DecorationManager.getInstance().addStaticDeco(loc, modelId, null, 1, new Quaternionf(), null);
+                DecorationManager.getInstance().addStaticDeco(new StaticDecoList.StaticDeco(loc, modelId));
             }
         }
     }

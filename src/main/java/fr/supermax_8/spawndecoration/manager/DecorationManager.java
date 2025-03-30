@@ -46,14 +46,24 @@ public class DecorationManager {
         this.decorations.put(deco.getDummy().getUUID(), deco);
     }
 
-    public void loadStaticDecoration(UUID id, String modelId, String defaultAnimation, Location loc, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
-        List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(modelId, a -> new ArrayList<>());
+    public void loadStaticDecoration(StaticDecoList.StaticDeco staticDeco) {
+        Objects.requireNonNull(staticDeco, "staticDeco cannot be null");
+        List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(staticDeco.getModelId(), a -> new ArrayList<>());
         try {
-            StaticDecoration d = new StaticDecoration(id, modelId, defaultAnimation, loc, scale, rotation, texts);
+            StaticDecoration d = new StaticDecoration(
+                    staticDeco.getId(),
+                    staticDeco.getModelId(),
+                    staticDeco.getDefaultAnimation(),
+                    staticDeco.getBukkitLocation(),
+                    staticDeco.getScale(),
+                    staticDeco.getRotation(),
+                    staticDeco.getTexts(),
+                    staticDeco.getBoneTransformations()
+            );
             decorations.add(d);
-            this.decorations.put(id, d);
+            this.decorations.put(staticDeco.getId(), d);
         } catch (Exception e) {
-            System.out.println("Error while loading decoration: " + modelId + " at " + loc);
+            System.out.println("Error while loading decoration: " + staticDeco.getModelId() + " at " + staticDeco.getLocation());
             e.printStackTrace();
         }
     }
@@ -93,9 +103,8 @@ public class DecorationManager {
         SpawnDecorationConfig.reload();
     }
 
-    public void addStaticDeco(Location loc, String modelId, String defaultAnimation, double scale, Quaternionf rotation, Map<String, List<String>> texts) {
-        String serializedLocation = SerializationMethods.serializedLocation(loc);
-        addStaticDecos(List.of(new StaticDecoList.StaticDeco(UUID.randomUUID(), serializedLocation, modelId, defaultAnimation, scale, rotation, texts)));
+    public void addStaticDeco(StaticDecoList.StaticDeco staticDeco) {
+        addStaticDecos(List.of(staticDeco));
     }
 
     public void addStaticDecos(Collection<StaticDecoList.StaticDeco> decos) {

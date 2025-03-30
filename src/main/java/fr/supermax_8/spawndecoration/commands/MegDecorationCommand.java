@@ -8,6 +8,7 @@ import com.ticxo.modelengine.api.model.ModelRegistry;
 import com.ticxo.modelengine.api.model.bone.BoneBehaviorTypes;
 import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
 import com.ticxo.modelengine.api.utils.config.ConfigProperty;
+import com.ticxo.modelengine.api.utils.math.TMath;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -34,6 +35,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import revxrsal.commands.annotation.Command;
@@ -46,6 +48,7 @@ import revxrsal.commands.command.CommandActor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 @CommandPermission("modelenginedecoration.use")
 @Command({"modelenginedecoration", "mdec", "hendek"})
@@ -88,6 +91,11 @@ public class MegDecorationCommand {
         });
     }
 
+    private float roundFloat(float value, int precision) {
+        float scale = (float) Math.pow(10, precision);
+        return Math.round(value * scale) / scale;
+    }
+
     private ItemStack itm(Material material, String displayName) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
@@ -101,9 +109,9 @@ public class MegDecorationCommand {
             for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
                 if (!deco.getId().equals(uuid))
                     continue;
-                Location loc = SerializationMethods.deserializedLocation(deco.getLocation());
+                Location loc = deco.getBukkitLocation();
                 loc.add(dx, dy, dz);
-                deco.setLocation(SerializationMethods.serializedLocation(loc));
+                deco.setBukkitLocation(loc);
                 deco.setScale(deco.getScale() + dscale);
                 if (resetRotate)
                     deco.getRotation().set(new Quaternionf());
@@ -190,6 +198,168 @@ public class MegDecorationCommand {
                     });
                 })
                 .init();
+    }
+
+    private void editbonebone(Player editor, UUID decoId, String boneId, float dx, float dy, float dz, double dscale, float drx, float dry, float drz, boolean resetPosition, boolean resetRotate, int visible) {
+        DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
+            for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
+                if (!deco.getId().equals(decoId))
+                    continue;
+                Map<String, StaticDecoList.StaticDeco.ModelTransformation> bones = deco.getBoneTransformations();
+                if (bones == null) bones = new HashMap<>();
+                StaticDecoList.StaticDeco.ModelTransformation transformation = bones.getOrDefault(boneId, new StaticDecoList.StaticDeco.ModelTransformation());
+                Vector3f pos = transformation.getPosition();
+                if (resetPosition)
+                    pos.set(new Vector3f());
+                else {
+                    pos.add(dx, dy, dz);
+                    pos.x = roundFloat(pos.x, 3);
+                    pos.y = roundFloat(pos.y, 3);
+                    pos.z = roundFloat(pos.z, 3);
+                }
+                transformation.setScale(roundFloat((float) (transformation.getScale() + dscale), 3));
+                Quaternionf transRot = transformation.getRotation();
+                if (resetRotate)
+                    transRot.set(new Quaternionf());
+                else {
+                    transRot.rotateXYZ(
+                            (float) Math.toRadians(drx),
+                            (float) Math.toRadians(dry),
+                            (float) Math.toRadians(drz)
+                    );
+                    transRot.x = roundFloat(transRot.x, 5);
+                    transRot.y = roundFloat(transRot.y, 5);
+                    transRot.z = roundFloat(transRot.z, 5);
+                    transRot.w = roundFloat(transRot.w, 5);
+                }
+                if (visible != 0)
+                    transformation.setVisible(visible == 2);
+
+                Vector3f angle = new Vector3f();
+                transformation.getRotation().getEulerAnglesXYZ(angle);
+                editor.sendMessage("Edit Bone: §e§l" + boneId);
+                editor.sendMessage("§8- §7Position XYZ: §6" + pos.x + " " + pos.y + " " + pos.z);
+                editor.sendMessage("§8- §7Rotation XYZ: §6" + Math.toDegrees(angle.x) + " " + Math.toDegrees(angle.y) + " " + Math.toDegrees(angle.z));
+                editor.sendMessage("§8- §7Scale: §6" + transformation.getScale());
+                editor.sendMessage("§8- §7Visible: §6" + transformation.isVisible());
+                bones.put(boneId, transformation);
+                deco.setBoneTransformations(bones);
+                break;
+            }
+        });
+    }
+
+    private void editBone(Player p, StaticDecoration staticDecoration, UUID decoId, String boneId) {
+        new HotbarEditor(p)
+                .addItem(0, itm(Material.RED_WOOL, "MOVE DIRECTION"), itm -> {
+                    itm.leftClick(() -> {
+                        Vector direction = p.getLocation().getDirection();
+                        Vector3f moveVec = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
+                        float yaw = staticDecoration.getLocation().getYaw();
+                        Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw + 180)));
+                        rotation.transform(moveVec);
+
+                        float dx = Math.round(moveVec.x()) * 0.1f;
+                        float dy = Math.round(moveVec.y()) * 0.1f;
+                        float dz = Math.round(moveVec.z()) * 0.1f;
+
+                        editbonebone(p, decoId, boneId, dx, dy, dz, 0, 0, 0, 0, false, false, 0);
+                    });
+                    itm.rightClick(() -> {
+                        Vector direction = p.getLocation().getDirection();
+                        Vector3f moveVec = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
+                        float yaw = staticDecoration.getLocation().getYaw();
+                        Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw)));
+                        rotation.transform(moveVec);
+
+                        float dx = Math.round(moveVec.x()) * 0.1f;
+                        float dy = Math.round(moveVec.y()) * 0.1f;
+                        float dz = Math.round(moveVec.z()) * 0.1f;
+
+                        editbonebone(p, decoId, boneId, dx, dy, dz, 0, 0, 0, 0, false, false, 0);
+                    });
+                })
+                .addItem(1, itm(Material.GRAY_WOOL, "RESET POS"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
+                    });
+                })
+                .addItem(2, itm(Material.REDSTONE_LAMP, "IS VISIBLE"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 2);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 1);
+                    });
+                })
+                .addItem(3, itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0.1, 0, 0, 0, false, false, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, -0.1, 0, 0, 0, false, false, 0);
+                    });
+                })
+                .addItem(4, itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 11.25f, 0, 0, false, false, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, -11.25f, 0, 0, false, false, 0);
+                    });
+                })
+                .addItem(5, itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 11.25f, 0, false, false, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, -11.25f, 0, false, false, 0);
+                    });
+                })
+                .addItem(6, itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 11.25f, false, false, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, -11.25f, false, false, 0);
+                    });
+                })
+                .addItem(7, itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
+                    itm.leftClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
+                    }).rightClick(() -> {
+                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
+                    });
+                }).init();
+    }
+
+    @Subcommand({"editbone"})
+    public void boneTransformations(Player p) {
+        StaticDecoration closest = getClosestDeco(p.getLocation());
+        if (closest == null) {
+            p.sendMessage("§cThere is no close decoration !");
+            return;
+        }
+        ModelBlueprint blueprint = ModelEngineAPI.getBlueprint(closest.getModelId());
+        PaginatedGui paginatedGui = Gui.paginated()
+                .title(Component.text("Decorations"))
+                .rows(6)
+                .pageSize(45)
+                .create();
+        blueprintBonesForeach(blueprint.getBones(), (s, b) -> {
+            paginatedGui.addItem(ItemBuilder.from(Material.BONE).name(Component.text(s)).asGuiItem(click -> {
+                click.setCancelled(true);
+                p.closeInventory();
+                editBone(p, closest, closest.getUuid(), s);
+                p.sendMessage(s);
+            }));
+        });
+        paginatedGui.open(p);
+    }
+
+
+    private void blueprintBonesForeach(Map<String, BlueprintBone> bones, BiConsumer<String, BlueprintBone> cons) {
+        bones.forEach((s, b) -> {
+            cons.accept(s, b);
+            blueprintBonesForeach(b.getChildren(), cons);
+        });
     }
 
     @CommandPermission("mdec.record")
@@ -390,7 +560,7 @@ public class MegDecorationCommand {
         }
         DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
             for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
-                if (!SerializationMethods.deserializedLocation(deco.getLocation()).equals(closest.getLocation()))
+                if (!deco.getBukkitLocation().equals(closest.getLocation()))
                     continue;
                 if (deco.getTexts() == null) deco.setTexts(new HashMap<>());
                 deco.getTexts().computeIfAbsent(textId, k -> new ArrayList<>()).add(text);
@@ -414,7 +584,7 @@ public class MegDecorationCommand {
         }
         DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
             for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
-                if (!SerializationMethods.deserializedLocation(deco.getLocation()).equals(closest.getLocation()))
+                if (!deco.getBukkitLocation().equals(closest.getLocation()))
                     continue;
                 if (deco.getTexts() == null) deco.setTexts(new HashMap<>());
                 deco.getTexts().remove(textId);
@@ -444,7 +614,7 @@ public class MegDecorationCommand {
     }
 
     private void sendDeco(CommandSender p, StaticDecoList.StaticDeco st) {
-        Location loc = SerializationMethods.deserializedLocation(st.getLocation());
+        Location loc = st.getBukkitLocation();
         TextComponent textComponent = Component.text("§6§l" + st.getModelId() + " §8: §7" + st.getLocation())
                 .hoverEvent(HoverEvent.showText(Component.text("Click to teleport")))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/mdec teleport " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()));

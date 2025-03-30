@@ -30,10 +30,12 @@ public class WEClipboardManager {
         ArrayList<StaticDecoList.StaticDeco> offsetedDecos = new ArrayList<>();
         ArrayList<StaticDecoList.StaticDeco> decos = new ArrayList<>();
         for (StaticDecoList.StaticDeco deco : decoList.getList()) {
-            Location loc = SerializationMethods.deserializedLocation(deco.getLocation());
+            Location loc = deco.getBukkitLocation();
             if (!region.contains(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) continue;
             Location offset = loc.subtract(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
-            offsetedDecos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(offset), deco.getModelId(), deco.getDefaultAnimation(), deco.getScale(), deco.getRotation(), deco.getTexts()));
+            StaticDecoList.StaticDeco cloned = deco.clone();
+            cloned.setBukkitLocation(offset);
+            offsetedDecos.add(cloned);
             decos.add(deco);
         }
 
@@ -50,7 +52,6 @@ public class WEClipboardManager {
         }
     }
 
-
     public static void paste(Player p) {
         List<StaticDecoList.StaticDeco> clipboard = clipboards.get(p.getUniqueId());
         if (clipboard == null) {
@@ -60,10 +61,12 @@ public class WEClipboardManager {
         Location pLoc = p.getLocation();
         LinkedList<StaticDecoList.StaticDeco> decos = new LinkedList<>();
         for (StaticDecoList.StaticDeco deco : clipboard) {
-            Location offset = SerializationMethods.deserializedLocation(deco.getLocation());
+            Location offset = deco.getBukkitLocation();
             Location newLoc = offset.add(pLoc.getBlockX(), pLoc.getBlockY(), pLoc.getBlockZ());
             newLoc.setWorld(pLoc.getWorld());
-            decos.add(new StaticDecoList.StaticDeco(UUID.randomUUID(), SerializationMethods.serializedLocation(newLoc), deco.getModelId(), deco.getDefaultAnimation(), deco.getScale(), deco.getRotation(), deco.getTexts()));
+            StaticDecoList.StaticDeco cloned = deco.clone();
+            cloned.setBukkitLocation(newLoc);
+            decos.add(cloned);
             p.sendMessage("§7Deco §e" + deco.getModelId() + " §7pasted: §e" + newLoc.getWorld().getName() + " " + newLoc.getBlockX() + " " + newLoc.getBlockY() + " " + newLoc.getBlockZ());
         }
 
