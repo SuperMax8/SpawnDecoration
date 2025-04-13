@@ -7,14 +7,13 @@ import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.listeners.InteractListener;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
-import fr.supermax_8.spawndecoration.utils.TemporaryListener;
+import fr.supermax_8.spawndecoration.utils.BukkitListener;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.Getter;
 import me.tofaa.entitylib.APIConfig;
 import me.tofaa.entitylib.EntityLib;
 import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import revxrsal.commands.Lamp;
@@ -37,6 +36,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        BukkitListener.init(this);
         PacketEvents.getAPI().init();
 
         SpigotEntityLibPlatform platform = new SpigotEntityLibPlatform(this);
@@ -58,7 +58,7 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
         }
 
         if (!ModelEngineAPI.getAPI().getModelGenerator().isInitialized())
-            new TemporaryListener<>(ModelRegistrationEvent.class, EventPriority.NORMAL, e -> {
+            BukkitListener.registerListener(ModelRegistrationEvent.class, e -> {
                 new BukkitRunnable() {
                     @Override
                     public void run() {

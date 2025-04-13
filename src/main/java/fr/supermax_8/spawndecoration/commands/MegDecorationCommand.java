@@ -1,5 +1,6 @@
 package fr.supermax_8.spawndecoration.commands;
 
+import com.github.retrooper.packetevents.util.MathUtil;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.assets.ItemModelData;
 import com.ticxo.modelengine.api.generator.blueprint.BlueprintBone;
@@ -7,7 +8,6 @@ import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import com.ticxo.modelengine.api.model.ModelRegistry;
 import com.ticxo.modelengine.api.model.bone.BoneBehaviorTypes;
 import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
-import com.ticxo.modelengine.api.utils.config.ConfigProperty;
 import com.ticxo.modelengine.api.utils.math.TMath;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
@@ -20,21 +20,22 @@ import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.manager.WEClipboardManager;
-import fr.supermax_8.spawndecoration.utils.HotbarEditor;
+import fr.supermax_8.spawndecoration.utils.PaginatedHotbarEditor;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -49,6 +50,7 @@ import revxrsal.commands.command.CommandActor;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @CommandPermission("modelenginedecoration.use")
 @Command({"modelenginedecoration", "mdec", "hendek"})
@@ -104,31 +106,40 @@ public class MegDecorationCommand {
         return item;
     }
 
-    private void editmoverotate(Player editor, UUID uuid, double dx, double dy, double dz, double dscale, float drx, float dry, float drz, boolean resetRotate) {
+    private void editdeco(Player editor, UUID uuid, Consumer<StaticDecoList.StaticDeco> edition) {
         DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
             for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
                 if (!deco.getId().equals(uuid))
                     continue;
+                edition.accept(deco);
                 Location loc = deco.getBukkitLocation();
-                loc.add(dx, dy, dz);
-                deco.setBukkitLocation(loc);
-                deco.setScale(deco.getScale() + dscale);
-                if (resetRotate)
-                    deco.getRotation().set(new Quaternionf());
-                else
-                    deco.getRotation().rotateXYZ(
-                            (float) Math.toRadians(drx),
-                            (float) Math.toRadians(dry),
-                            (float) Math.toRadians(drz)
-                    );
                 Vector3f angle = new Vector3f();
                 deco.getRotation().getEulerAnglesXYZ(angle);
                 editor.sendMessage("Edit: ");
                 editor.sendMessage("§8- §7Position XYZ: §6" + loc.getX() + " " + loc.getY() + " " + loc.getZ());
                 editor.sendMessage("§8- §7Rotation XYZ: §6" + Math.toDegrees(angle.x) + " " + Math.toDegrees(angle.y) + " " + Math.toDegrees(angle.z));
                 editor.sendMessage("§8- §7Scale: §6" + deco.getScale());
+                editor.sendMessage("§8- §7BlockLight/SkyLight: §6" + deco.getBlockLight() + " " + deco.getSkyLight());
                 break;
             }
+        });
+    }
+
+    private void editmove(Player editor, UUID uuid, double dx, double dy, double dz) {
+        editdeco(editor, uuid, deco -> {
+            Location loc = deco.getBukkitLocation();
+            loc.add(dx, dy, dz);
+            deco.setBukkitLocation(loc);
+        });
+    }
+
+    private void editrotate(Player editor, UUID uuid, double drx, double dry, double drz) {
+        editdeco(editor, uuid, deco -> {
+            deco.getRotation().rotateXYZ(
+                    (float) Math.toRadians(drx),
+                    (float) Math.toRadians(dry),
+                    (float) Math.toRadians(drz)
+            );
         });
     }
 
@@ -140,61 +151,72 @@ public class MegDecorationCommand {
             return;
         }
         UUID id = closest.getUuid();
-        HotbarEditor editor = new HotbarEditor(p)
-                .addItem(0, itm(Material.RED_WOOL, "MOVE X"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0.1, 0, 0, 0, 0, 0, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, -0.1, 0, 0, 0, 0, 0, 0, false);
+        PaginatedHotbarEditor editor = new PaginatedHotbarEditor(p)
+                .addItem(itm(Material.RED_WOOL, "MOVE X"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        editmove(p, id, delta, 0, 0);
                     });
                 })
-                .addItem(1, itm(Material.ORANGE_WOOL, "MOVE Y"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0.1, 0, 0, 0, 0, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, -0.1, 0, 0, 0, 0, 0, false);
+                .addItem(itm(Material.ORANGE_WOOL, "MOVE Y"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        editmove(p, id, 0, delta, 0);
                     });
                 })
-                .addItem(2, itm(Material.YELLOW_WOOL, "MOVE Y"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0.1, 0, 0, 0, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, -0.1, 0, 0, 0, 0, false);
+                .addItem(itm(Material.YELLOW_WOOL, "MOVE Z"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        editmove(p, id, 0, 0, delta);
                     });
                 })
-                .addItem(3, itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0.1, 0, 0, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, -0.1, 0, 0, 0, false);
+                .addItem(itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        editdeco(p, id, deco -> {
+                            deco.setScale(deco.getScale() + delta);
+                        });
                     });
                 })
-                .addItem(4, itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 11.25f, 0, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, -11.25f, 0, 0, false);
+                .addItem(itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        editrotate(p, id, delta, 0, 0);
                     });
                 })
-                .addItem(5, itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, 11.25f, 0, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, -11.25f, 0, false);
+                .addItem(itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        editrotate(p, id, 0, delta, 0);
                     });
                 })
-                .addItem(6, itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 11.25f, false);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, -11.25f, false);
+                .addItem(itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
+                    itm.click(e -> {
+                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        editrotate(p, id, 0, 0, delta);
                     });
                 })
-                .addItem(7, itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
-                    itm.leftClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 0, true);
-                    }).rightClick(() -> {
-                        editmoverotate(p, id, 0, 0, 0, 0, 0, 0, 0, true);
+                .addItem(itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
+                    itm.click(e -> {
+                        editdeco(p, id, deco -> {
+                            deco.getRotation().set(new Quaternionf());
+                        });
+                    });
+                })
+                .addItem(itm(Material.REDSTONE_LAMP, "BLOCK LIGHT"), itm -> {
+                    itm.click(e -> {
+                        int delta = e.getAction().name().contains("LEFT") ? 1 : -1;
+                        editdeco(p, id, deco -> {
+                            deco.setBlockLight(MathUtil.clamp(deco.getBlockLight() + delta, 0, 15));
+                        });
+                    });
+                })
+                .addItem(itm(Material.SEA_LANTERN, "SKY LIGHT"), itm -> {
+                    itm.click(e -> {
+                        int delta = e.getAction().name().contains("LEFT") ? 1 : -1;
+                        editdeco(p, id, deco -> {
+                            deco.setSkyLight(MathUtil.clamp(deco.getSkyLight() + delta, 0, 15));
+                        });
                     });
                 })
                 .init();
@@ -250,8 +272,8 @@ public class MegDecorationCommand {
     }
 
     private void editBone(Player p, StaticDecoration staticDecoration, UUID decoId, String boneId) {
-        new HotbarEditor(p)
-                .addItem(0, itm(Material.RED_WOOL, "MOVE DIRECTION"), itm -> {
+        new PaginatedHotbarEditor(p)
+                .addItem(itm(Material.RED_WOOL, "MOVE DIRECTION"), itm -> {
                     itm.leftClick(() -> {
                         Vector direction = p.getLocation().getDirection();
                         Vector3f moveVec = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
@@ -279,55 +301,56 @@ public class MegDecorationCommand {
                         editbonebone(p, decoId, boneId, dx, dy, dz, 0, 0, 0, 0, false, false, 0);
                     });
                 })
-                .addItem(1, itm(Material.GRAY_WOOL, "RESET POS"), itm -> {
+                .addItem(itm(Material.GRAY_WOOL, "RESET POS"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
                     });
                 })
-                .addItem(2, itm(Material.REDSTONE_LAMP, "IS VISIBLE"), itm -> {
+                .addItem(itm(Material.REDSTONE_LAMP, "IS VISIBLE"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 2);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 1);
                     });
                 })
-                .addItem(3, itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
+                .addItem(itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0.1, 0, 0, 0, false, false, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, -0.1, 0, 0, 0, false, false, 0);
                     });
                 })
-                .addItem(4, itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
+                .addItem(itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 11.25f, 0, 0, false, false, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, -11.25f, 0, 0, false, false, 0);
                     });
                 })
-                .addItem(5, itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
+                .addItem(itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 11.25f, 0, false, false, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, -11.25f, 0, false, false, 0);
                     });
                 })
-                .addItem(6, itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
+                .addItem(itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 11.25f, false, false, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, -11.25f, false, false, 0);
                     });
                 })
-                .addItem(7, itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
+                .addItem(itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
                     itm.leftClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
                     }).rightClick(() -> {
                         editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
                     });
-                }).init();
+                })
+                .init();
     }
 
     @Subcommand({"editbone"})
@@ -402,6 +425,11 @@ public class MegDecorationCommand {
 
     @Subcommand("deco")
     public void deco(Player p) {
+        deco(p, 0, 0);
+    }
+
+    @Subcommand("deco")
+    public void deco(Player p, int xspace, int yspace) {
         PaginatedGui paginatedGui = Gui.paginated()
                 .title(Component.text("Decorations"))
                 .rows(6)
@@ -410,8 +438,21 @@ public class MegDecorationCommand {
 
         ModelRegistry registry = ModelEngineAPI.getAPI().getModelRegistry();
         List<GuiItem> stacks = new ArrayList<>();
-        for (String name : registry.getKeys()) {
+        ArrayList<String> list = new ArrayList<>(registry.getKeys());
+        list.sort((s1, s2) -> {
+            s1 = s1.replace("d_", "").replace("deco_", "");
+            s2 = s2.replace("d_", "").replace("deco_", "");
+            return s1.compareToIgnoreCase(s2);
+        });
+        int count = 0;
+        for (String name : list) {
             if (name.startsWith("d_") || name.contains("deco")) {
+                if (count >= 9) {
+                    count = 0;
+                    for (int i = 0; i < yspace; i++)
+                        for (int j = 0; j < 8; j++)
+                            stacks.add(new GuiItem(Material.AIR));
+                }
                 ModelBlueprint blueprint = registry.get(name);
 
                 ItemModelData modelData = getRelevantDataFromBlueprint(blueprint);
@@ -422,17 +463,13 @@ public class MegDecorationCommand {
                         .name(Component.text(blueprint.getName()))
                         .asGuiItem(event -> event.setCancelled(false));
                 stacks.add(itm);
+                count++;
+                for (int i = 0; i < xspace; i++) {
+                    stacks.add(new GuiItem(Material.AIR));
+                    count++;
+                }
             }
         }
-
-        stacks.sort((g1, g2) -> {
-            String s1 = "", s2 = "";
-            if (g1.getItemStack().hasItemMeta() && g1.getItemStack().getItemMeta().hasDisplayName())
-                s1 = g1.getItemStack().getItemMeta().getDisplayName();
-            if (g2.getItemStack().hasItemMeta() && g2.getItemStack().getItemMeta().hasDisplayName())
-                s2 = g2.getItemStack().getItemMeta().getDisplayName();
-            return s1.compareTo(s2);
-        });
 
         stacks.forEach(paginatedGui::addItem);
 
@@ -643,6 +680,12 @@ public class MegDecorationCommand {
     }
 
     private ItemModelData getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
+        if (SpawnDecorationConfig.isMegcombined()) {
+            ItemModelData modelData = new ItemModelData();
+            modelData.setSingleComposite(new ItemModelData.SingleComposite(NamespacedKey.fromString("modelengine:" + blueprint.getName() + "/megcombined")));
+            return modelData;
+        }
+
         AtomicReference<BlueprintBone> head = new AtomicReference<>(null);
         List<BlueprintBone> bones = blueprint.getBones().values().stream()
                 .filter(bb -> {
@@ -674,7 +717,7 @@ public class MegDecorationCommand {
             if (imd.getSingleComposite() != null) {
                 itemModel = imd.getSingleComposite().model();
             } else {
-                System.out.println("" + imd.getMultiModels().getSubModels().stream().findFirst().get().getId());
+                //System.out.println("" + imd.getMultiModels().getSubModels().stream().findFirst().get().getId());
                 itemModel = NamespacedKey.fromString(imd.getMultiModels().getSubModels().stream().findFirst().get().getId());
             }
             ItemMeta meta = stack.getItemMeta();

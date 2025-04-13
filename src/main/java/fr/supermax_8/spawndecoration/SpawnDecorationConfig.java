@@ -14,7 +14,6 @@ import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.utils.FileUtils;
-import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -35,6 +34,9 @@ public class SpawnDecorationConfig {
 
     @Getter
     private static int renderRadius;
+
+    @Getter
+    private static boolean megcombined;
 
     @Getter
     private static ConcurrentHashMap<String, List<String>> particle = new ConcurrentHashMap<>();
@@ -102,6 +104,7 @@ public class SpawnDecorationConfig {
                             .build()
             );
             renderRadius = config.getInt("renderRadius");
+            megcombined = config.getBoolean("megcombined");
         } catch (Exception e) {
             e.printStackTrace();
         }

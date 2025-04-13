@@ -56,6 +56,8 @@ public class DecorationManager {
                     staticDeco.getDefaultAnimation(),
                     staticDeco.getBukkitLocation(),
                     staticDeco.getScale(),
+                    staticDeco.getBlockLight(),
+                    staticDeco.getSkyLight(),
                     staticDeco.getRotation(),
                     staticDeco.getTexts(),
                     staticDeco.getBoneTransformations()

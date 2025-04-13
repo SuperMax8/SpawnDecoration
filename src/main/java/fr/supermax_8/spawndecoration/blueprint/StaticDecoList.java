@@ -31,6 +31,8 @@ public class StaticDecoList {
         private String defaultAnimation;
         private double scale;
         private Quaternionf rotation;
+        private int blockLight;
+        private int skyLight;
         private Map<String, List<String>> texts;
         private Map<String, ModelTransformation> boneTransformations;
 
@@ -39,6 +41,8 @@ public class StaticDecoList {
             this.location = SerializationMethods.serializedLocation(location);
             this.modelId = modelId;
             scale = 1.0;
+            blockLight = -1;
+            skyLight = -1;
         }
 
         public void setBukkitLocation(Location location) {

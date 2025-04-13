@@ -1,24 +1,19 @@
 package fr.supermax_8.spawndecoration.manager;
 
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.utils.BukkitListener;
 import fr.supermax_8.spawndecoration.utils.FileUtils;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
-import fr.supermax_8.spawndecoration.utils.TemporaryListener;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -71,8 +66,7 @@ public class RecordLocationManager {
             }
         }.runTaskTimer(SpawnDecorationPlugin.getInstance(), 0, 0);
 
-        new TemporaryListener<PlayerInteractEvent>(PlayerInteractEvent.class, EventPriority.NORMAL, e -> {
-            if (!p.equals(e.getPlayer())) return false;
+        BukkitListener.registerPlayerListener(p, PlayerInteractEvent.class, e -> {
             try {
                 File recordDir = new File(SpawnDecorationPlugin.getInstance().getDataFolder(), "recordlocation");
                 File record = new File(recordDir, recordName + ".yml");

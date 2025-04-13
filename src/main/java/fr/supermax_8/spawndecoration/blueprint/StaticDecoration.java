@@ -31,10 +31,12 @@ public class StaticDecoration extends Decoration {
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
     private List<Location> lights;
 
-    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
+    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, int blockLight, int skyLight, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
         super(uuid, modelId, location, null, texts);
 
         activeModel.setScale(scale);
+        if (blockLight > 0) activeModel.setBlockLight(blockLight);
+        if (skyLight > 0) activeModel.setSkyLight(skyLight);
         activeModel.getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
             SimpleManualAnimator anim = new SimpleManualAnimator();
             anim.getRotation().set(rotation);
