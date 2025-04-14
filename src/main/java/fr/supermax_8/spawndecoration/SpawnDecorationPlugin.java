@@ -71,7 +71,8 @@ public final class SpawnDecorationPlugin extends JavaPlugin {
 
         DriverManager.getInstance().initTask();
 
-        Lamp<BukkitCommandActor> lamp = BukkitLamp.builder(this).build();
+        Lamp<BukkitCommandActor> lamp = BukkitLamp.builder(this)
+                .build();
         lamp.register(new MegDecorationCommand());
 
         getServer().getPluginManager().registerEvents(new InteractListener(), this);

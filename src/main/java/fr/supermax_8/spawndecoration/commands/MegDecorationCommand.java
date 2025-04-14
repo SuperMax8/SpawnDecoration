@@ -27,25 +27,23 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import revxrsal.commands.annotation.Command;
-import revxrsal.commands.annotation.CommandPlaceholder;
+import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
-import revxrsal.commands.annotation.Subcommand;
+import revxrsal.commands.autocomplete.SuggestionProvider;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 import revxrsal.commands.command.CommandActor;
+import revxrsal.commands.node.ExecutionContext;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -74,7 +72,7 @@ public class MegDecorationCommand {
     }
 
     @Subcommand({"setdefaultanimation", "setdanim"})
-    public void setDefaultAnimation(Player p, String animation) {
+    public void setDefaultAnimation(Player p, @SuggestWith(ModelAnimation.class) String animation) {
         StaticDecoration closest = getClosestDeco(p.getLocation());
         if (closest == null) {
             p.sendMessage("§cThere is no close decoration !");
@@ -91,6 +89,21 @@ public class MegDecorationCommand {
                 break;
             }
         });
+    }
+
+    public static final class ModelAnimation implements SuggestionProvider<BukkitCommandActor> {
+
+        @Override
+        public @NotNull List<String> getSuggestions(@NotNull ExecutionContext<BukkitCommandActor> context) {
+            Player p = context.actor().asPlayer();
+            StaticDecoration closest = getClosestDeco(p.getLocation());
+            if (closest == null) {
+                p.sendMessage("§cThere is no close decoration !");
+                return List.of();
+            }
+            return new ArrayList<>(closest.getActiveModel().getBlueprint().getAnimations().keySet());
+        }
+
     }
 
     private float roundFloat(float value, int precision) {
@@ -631,7 +644,7 @@ public class MegDecorationCommand {
         p.sendMessage("§6Lines cleared for text §r" + textId);
     }
 
-    private StaticDecoration getClosestDeco(Location loc) {
+    private static StaticDecoration getClosestDeco(Location loc) {
         StaticDecoration deco = null;
         double distance = Double.MAX_VALUE;
 
