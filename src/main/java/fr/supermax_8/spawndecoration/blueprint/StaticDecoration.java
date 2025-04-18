@@ -125,6 +125,8 @@ public class StaticDecoration extends Decoration {
         double height = hitbox.getHeight();
         double depth = hitbox.getDepth();
 
+        if (width < 1 || height < 1 || depth < 1) return;
+
         int minX = (int) Math.floor(loc.getX() - width / 2 - 1);
         int maxX = (int) Math.ceil(loc.getX() + width / 2 + 1);
         int minY = (int) Math.floor(loc.getY());
