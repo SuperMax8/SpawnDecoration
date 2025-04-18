@@ -10,12 +10,14 @@ import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +31,17 @@ public class StaticDecoration extends Decoration {
 
     @Getter
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
+    private final Quaternionf modelRotation;
     private List<Location> lights;
+
+    public StaticDecoration(StaticDecoList.StaticDeco deco) {
+        this(deco.getId(), deco.getModelId(), deco.getDefaultAnimation(), deco.getBukkitLocation(), deco.getScale(), deco.getBlockLight(), deco.getSkyLight(), deco.getRotation(), deco.getTexts(), deco.getBoneTransformations());
+    }
 
     public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, int blockLight, int skyLight, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
         super(uuid, modelId, location, null, texts);
 
+        modelRotation = new Quaternionf(rotation);
         activeModel.setScale(scale);
         if (blockLight > 0) activeModel.setBlockLight(blockLight);
         if (skyLight > 0) activeModel.setSkyLight(skyLight);
@@ -111,21 +119,31 @@ public class StaticDecoration extends Decoration {
     }
 
     private void forEachHitboxBlocks(Consumer<Block> consumer) {
-        Hitbox hitbox = activeModel.getBlueprint().getMainHitbox();
-        if (Math.floor(hitbox.getHeight()) == 0 || Math.floor(hitbox.getDepth()) == 0 || Math.floor(hitbox.getWidth()) == 0)
-            return;
-        Location location = getLocation();
-        BoundingBox box = hitbox.createBoundingBox(new Vector(
-                location.getX() - 0.5, location.getY() - 0.5, location.getZ() - 0.5
-        ));
-        for (int x = (int) Math.ceil(box.getMinX()); x <= Math.floor(box.getMaxX()); x++) {
-            for (int y = (int) Math.ceil(box.getMinY()); y <= Math.floor(box.getMaxY()); y++) {
-                for (int z = (int) Math.ceil(box.getMinZ()); z <= Math.floor(box.getMaxZ()); z++) {
-                    Block block = location.getWorld().getBlockAt(x, y, z);
-                    consumer.accept(block);
+        Hitbox hit = activeModel.getBlueprint().getMainHitbox();
+        float w = (float) hit.getWidth(), h = (float) hit.getHeight(), d = (float) hit.getDepth();
+        if (w <= 0 || h <= 0 || d <= 0) return;
+
+        Location loc = getLocation();
+        int cx = loc.getBlockX(), cy = loc.getBlockY(), cz = loc.getBlockZ();
+
+        BoundingBox bb = hit.createBoundingBox(new Vector());
+        Vector bc = bb.getCenter();
+        Vector3f center = new Vector3f((float) bc.getX(), (float) bc.getY(), (float) bc.getZ());
+
+        float hx = w / 2f, hy = h / 2f, hz = d / 2f;
+        int R = (int) Math.ceil(Math.max(Math.max(hx, hy), hz));
+
+        Quaternionf invYaw = new Quaternionf().rotateY((float) Math.toRadians(loc.getYaw()));
+
+        World world = loc.getWorld();
+        Vector3f p = new Vector3f();
+        for (int dx = -R; dx <= R; dx++)
+            for (int dy = -R; dy <= R; dy++)
+                for (int dz = -R; dz <= R; dz++) {
+                    invYaw.transform(p.set(dx + 0.5f, dy + 0.5f, dz + 0.5f)).sub(center);
+                    if (Math.abs(p.x) <= hx && Math.abs(p.y) <= hy && Math.abs(p.z) <= hz)
+                        consumer.accept(world.getBlockAt(cx + dx, cy + dy, cz + dz));
                 }
-            }
-        }
     }
 
 }

@@ -50,18 +50,7 @@ public class DecorationManager {
         Objects.requireNonNull(staticDeco, "staticDeco cannot be null");
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(staticDeco.getModelId(), a -> new ArrayList<>());
         try {
-            StaticDecoration d = new StaticDecoration(
-                    staticDeco.getId(),
-                    staticDeco.getModelId(),
-                    staticDeco.getDefaultAnimation(),
-                    staticDeco.getBukkitLocation(),
-                    staticDeco.getScale(),
-                    staticDeco.getBlockLight(),
-                    staticDeco.getSkyLight(),
-                    staticDeco.getRotation(),
-                    staticDeco.getTexts(),
-                    staticDeco.getBoneTransformations()
-            );
+            StaticDecoration d = new StaticDecoration(staticDeco);
             decorations.add(d);
             this.decorations.put(staticDeco.getId(), d);
         } catch (Exception e) {
