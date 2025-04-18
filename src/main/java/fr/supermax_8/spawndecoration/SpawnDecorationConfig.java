@@ -44,10 +44,14 @@ public class SpawnDecorationConfig {
     @Getter
     private static ConcurrentHashMap<String, Text> text = new ConcurrentHashMap<>();
 
+    @Getter
+    private static Status status = Status.UNLOADED;
+
     /**
      * Simple load will be change if I add other decoration type
      */
-    public static void load() {
+    public static synchronized void load() {
+        status = Status.LOADING;
         RecordLocationManager.load();
         File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
 
@@ -133,8 +137,8 @@ public class SpawnDecorationConfig {
         list.getList().forEach(staticDeco -> {
             DecorationManager.getInstance().loadStaticDecoration(staticDeco);
         });
+        status = Status.LOADED;
     }
-
 
     private static void loadMapFromSection(Map<String, List<String>> map, Section section) {
         try {
@@ -156,16 +160,18 @@ public class SpawnDecorationConfig {
         return inputStream;
     }
 
-    public static void unLoad() {
+    public static synchronized void unLoad() {
+        status = Status.UNLOADING;
         DecorationManager.getInstance().getDecorations().values().forEach(Decoration::remove);
         RecordLocationManager.records.clear();
         DecorationManager.getInstance().getDecorations().clear();
         DecorationManager.getInstance().getTrackedDecoMap().clear();
         DecorationManager.getInstance().getStaticDecoMap().clear();
         DriverManager.clear();
+        status = Status.UNLOADED;
     }
 
-    public static void reload() {
+    public static synchronized void reload() {
         unLoad();
         load();
     }
@@ -173,6 +179,13 @@ public class SpawnDecorationConfig {
     public record Text(List<String> lines, TextDisplay.TextAlignment alignment, Display.Billboard billboard,
                        boolean shadow, boolean seeThroughBlocks, int[] bgArgb, float scale) {
 
+    }
+
+    enum Status {
+        UNLOADING,
+        UNLOADED,
+        LOADING,
+        LOADED,
     }
 
 }

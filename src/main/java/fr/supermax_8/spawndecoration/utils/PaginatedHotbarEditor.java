@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration.utils;
 
 import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
 import lombok.Builder;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,6 +28,8 @@ public class PaginatedHotbarEditor {
     private List<ItemStack> hotbar;
     private PaginatedHotbarEditor parent = null;
     private int currentPage = 0;
+    @Setter
+    private Runnable close = null;
 
     public PaginatedHotbarEditor(Player player) {
         this(player, new int[]{2, 3, 4, 5, 6, 7});
@@ -37,13 +40,16 @@ public class PaginatedHotbarEditor {
         this.displaySlots = displaySlots;
     }
 
-    public PaginatedHotbarEditor(Player player, Consumer<PaginatedHotbarEditor> init, PaginatedHotbarEditor parent) {
+    public PaginatedHotbarEditor(Player player, PaginatedHotbarEditor parent, Consumer<PaginatedHotbarEditor> init) {
         this(player);
         this.parent = parent;
-        if (parent != null)
-            parent.end();
-        init.accept(this);
-        init();
+        if (init != null)
+            init.accept(this);
+        if (parent != null) {
+            parent.unload();
+            Bukkit.getScheduler().runTaskLater(SpawnDecorationPlugin.getInstance(), this::init, 2);
+        } else
+            init();
     }
 
     public PaginatedHotbarEditor addItem(ItemStack item, Consumer<Item.ItemBuilder> builder) {
@@ -98,7 +104,8 @@ public class PaginatedHotbarEditor {
     }
 
     private void setItems() {
-        player.getInventory().clear();
+        for (int i = 0; i < 8; i++)
+            player.getInventory().setItem(i, null);
         int startIndex = currentPage * displaySlots.length;
         int endIndex = Math.min(startIndex + displaySlots.length, items.size());
 
@@ -123,6 +130,7 @@ public class PaginatedHotbarEditor {
         // Slot 8: End
         ItemStack end = createNamedItem(Material.BARRIER, "§cEnd edition");
         player.getInventory().setItem(8, end);
+        player.updateInventory();
     }
 
     private ItemStack createNamedItem(Material material, String name) {
@@ -148,6 +156,7 @@ public class PaginatedHotbarEditor {
         for (int i = 0; i < 9; i++) {
             player.getInventory().setItem(i, items.get(i));
         }
+        player.updateInventory();
     }
 
     private Optional<Item> getHoldingItem(int slot) {
@@ -166,13 +175,18 @@ public class PaginatedHotbarEditor {
         if (action != null) action.run();
     }
 
+    public void unload() {
+        setHotbarItems(hotbar);
+        listeners.forEach(BukkitListener::unregister);
+    }
+
     public void end() {
         setHotbarItems(hotbar);
         listeners.forEach(BukkitListener::unregister);
         player.sendMessage("§cEnd edition");
-        if (parent != null) {
+        if (close != null) close.run();
+        if (parent != null)
             Bukkit.getScheduler().runTaskLater(SpawnDecorationPlugin.getInstance(), parent::init, 1);
-        }
     }
 
     @Builder

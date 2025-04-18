@@ -10,19 +10,12 @@ import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -60,8 +53,9 @@ public class StaticDecoration extends Decoration {
                     anim.getPosition().set(v.getPosition());
                     anim.getScale().set(v.getScale());
                     bone.setManualAnimator(anim);
-                    bone.tick();
                     bone.setVisible(v.isVisible());
+                    if (v.getModelItem() != null) bone.setModel(v.getModelItem().createStack());
+                    bone.tick();
                 });
             });
 
@@ -119,31 +113,47 @@ public class StaticDecoration extends Decoration {
     }
 
     private void forEachHitboxBlocks(Consumer<Block> consumer) {
-        Hitbox hit = activeModel.getBlueprint().getMainHitbox();
-        float w = (float) hit.getWidth(), h = (float) hit.getHeight(), d = (float) hit.getDepth();
-        if (w <= 0 || h <= 0 || d <= 0) return;
+        Hitbox hitbox = activeModel.getBlueprint().getMainHitbox();
+        if (hitbox.getWidth() == 0 || hitbox.getDepth() == 0 || hitbox.getHeight() == 0) return;
 
         Location loc = getLocation();
-        int cx = loc.getBlockX(), cy = loc.getBlockY(), cz = loc.getBlockZ();
+        double yawRad = Math.toRadians(loc.getYaw());
+        double sin = Math.sin(-yawRad);
+        double cos = Math.cos(-yawRad);
 
-        BoundingBox bb = hit.createBoundingBox(new Vector());
-        Vector bc = bb.getCenter();
-        Vector3f center = new Vector3f((float) bc.getX(), (float) bc.getY(), (float) bc.getZ());
+        double width = hitbox.getWidth();
+        double height = hitbox.getHeight();
+        double depth = hitbox.getDepth();
 
-        float hx = w / 2f, hy = h / 2f, hz = d / 2f;
-        int R = (int) Math.ceil(Math.max(Math.max(hx, hy), hz));
+        int minX = (int) Math.floor(loc.getX() - width / 2 - 1);
+        int maxX = (int) Math.ceil(loc.getX() + width / 2 + 1);
+        int minY = (int) Math.floor(loc.getY());
+        int maxY = (int) Math.ceil(loc.getY() + height + 1);
+        int minZ = (int) Math.floor(loc.getZ() - depth / 2 - 1);
+        int maxZ = (int) Math.ceil(loc.getZ() + depth / 2 + 1);
 
-        Quaternionf invYaw = new Quaternionf().rotateY((float) Math.toRadians(loc.getYaw()));
+        Set<Long> visited = new HashSet<>();
 
-        World world = loc.getWorld();
-        Vector3f p = new Vector3f();
-        for (int dx = -R; dx <= R; dx++)
-            for (int dy = -R; dy <= R; dy++)
-                for (int dz = -R; dz <= R; dz++) {
-                    invYaw.transform(p.set(dx + 0.5f, dy + 0.5f, dz + 0.5f)).sub(center);
-                    if (Math.abs(p.x) <= hx && Math.abs(p.y) <= hy && Math.abs(p.z) <= hz)
-                        consumer.accept(world.getBlockAt(cx + dx, cy + dy, cz + dz));
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    double cx = x + 0.5 - loc.getX();
+                    double cy = y + 0.5 - loc.getY();
+                    double cz = z + 0.5 - loc.getZ();
+
+                    double lx = cx * cos - cz * sin;
+                    double lz = cx * sin + cz * cos;
+
+                    if (Math.abs(lx) <= width / 2 && Math.abs(cy) <= height && Math.abs(lz) <= depth / 2) {
+                        long key = (((long) x & 0x3FFFFFFL) << 38) | (((long) y & 0xFFFL) << 26) | ((long) z & 0x3FFFFFFL);
+                        if (visited.add(key)) {
+                            Block block = loc.getWorld().getBlockAt(x, y, z);
+                            consumer.accept(block);
+                        }
+                    }
                 }
+            }
+        }
     }
 
 }

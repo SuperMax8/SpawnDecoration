@@ -235,7 +235,7 @@ public class MegDecorationCommand {
                 .init();
     }
 
-    private void editbonebone(Player editor, UUID decoId, String boneId, float dx, float dy, float dz, double dscale, float drx, float dry, float drz, boolean resetPosition, boolean resetRotate, int visible) {
+    private void editbonebone(Player editor, UUID decoId, String boneId, Consumer<StaticDecoList.StaticDeco.ModelTransformation> edition) {
         DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
             for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
                 if (!deco.getId().equals(decoId))
@@ -243,33 +243,9 @@ public class MegDecorationCommand {
                 Map<String, StaticDecoList.StaticDeco.ModelTransformation> bones = deco.getBoneTransformations();
                 if (bones == null) bones = new HashMap<>();
                 StaticDecoList.StaticDeco.ModelTransformation transformation = bones.getOrDefault(boneId, new StaticDecoList.StaticDeco.ModelTransformation());
-                Vector3f pos = transformation.getPosition();
-                if (resetPosition)
-                    pos.set(new Vector3f());
-                else {
-                    pos.add(dx, dy, dz);
-                    pos.x = roundFloat(pos.x, 3);
-                    pos.y = roundFloat(pos.y, 3);
-                    pos.z = roundFloat(pos.z, 3);
-                }
-                transformation.setScale(roundFloat((float) (transformation.getScale() + dscale), 3));
-                Quaternionf transRot = transformation.getRotation();
-                if (resetRotate)
-                    transRot.set(new Quaternionf());
-                else {
-                    transRot.rotateXYZ(
-                            (float) Math.toRadians(drx),
-                            (float) Math.toRadians(dry),
-                            (float) Math.toRadians(drz)
-                    );
-                    transRot.x = roundFloat(transRot.x, 5);
-                    transRot.y = roundFloat(transRot.y, 5);
-                    transRot.z = roundFloat(transRot.z, 5);
-                    transRot.w = roundFloat(transRot.w, 5);
-                }
-                if (visible != 0)
-                    transformation.setVisible(visible == 2);
+                edition.accept(transformation);
 
+                Vector3f pos = transformation.getPosition();
                 Vector3f angle = new Vector3f();
                 transformation.getRotation().getEulerAnglesXYZ(angle);
                 editor.sendMessage("Edit Bone: §e§l" + boneId);
@@ -277,6 +253,7 @@ public class MegDecorationCommand {
                 editor.sendMessage("§8- §7Rotation XYZ: §6" + Math.toDegrees(angle.x) + " " + Math.toDegrees(angle.y) + " " + Math.toDegrees(angle.z));
                 editor.sendMessage("§8- §7Scale: §6" + transformation.getScale());
                 editor.sendMessage("§8- §7Visible: §6" + transformation.isVisible());
+                editor.sendMessage("§8- §7ItemModel: §6" + (transformation.getModelItem() == null ? "null" : transformation.getModelItem().toString()));
                 bones.put(boneId, transformation);
                 deco.setBoneTransformations(bones);
                 break;
@@ -284,83 +261,101 @@ public class MegDecorationCommand {
         });
     }
 
+    private void editboneboneRotate(Player editor, UUID decoId, String boneId, float drx, float dry, float drz) {
+        editbonebone(editor, decoId, boneId, bone -> {
+            Quaternionf rot = bone.getRotation();
+            rot.rotateXYZ(
+                    (float) Math.toRadians(drx),
+                    (float) Math.toRadians(dry),
+                    (float) Math.toRadians(drz)
+            );
+            rot.x = roundFloat(rot.x, 5);
+            rot.y = roundFloat(rot.y, 5);
+            rot.z = roundFloat(rot.z, 5);
+            rot.w = roundFloat(rot.w, 5);
+        });
+    }
+
     private void editBone(Player p, StaticDecoration staticDecoration, UUID decoId, String boneId) {
         new PaginatedHotbarEditor(p)
                 .addItem(itm(Material.RED_WOOL, "MOVE DIRECTION"), itm -> {
-                    itm.leftClick(() -> {
+                    itm.click(pi -> {
                         Vector direction = p.getLocation().getDirection();
                         Vector3f moveVec = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
                         float yaw = staticDecoration.getLocation().getYaw();
-                        Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw + 180)));
+                        Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw + (pi.getAction().name().contains("LEFT") ? 180 : 0))));
                         rotation.transform(moveVec);
 
                         float dx = Math.round(moveVec.x()) * 0.1f;
                         float dy = Math.round(moveVec.y()) * 0.1f;
                         float dz = Math.round(moveVec.z()) * 0.1f;
 
-                        editbonebone(p, decoId, boneId, dx, dy, dz, 0, 0, 0, 0, false, false, 0);
-                    });
-                    itm.rightClick(() -> {
-                        Vector direction = p.getLocation().getDirection();
-                        Vector3f moveVec = new Vector3f((float) direction.getX(), (float) direction.getY(), (float) direction.getZ());
-                        float yaw = staticDecoration.getLocation().getYaw();
-                        Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw)));
-                        rotation.transform(moveVec);
-
-                        float dx = Math.round(moveVec.x()) * 0.1f;
-                        float dy = Math.round(moveVec.y()) * 0.1f;
-                        float dz = Math.round(moveVec.z()) * 0.1f;
-
-                        editbonebone(p, decoId, boneId, dx, dy, dz, 0, 0, 0, 0, false, false, 0);
+                        editbonebone(p, decoId, boneId, bone -> {
+                            Vector3f pos = bone.getPosition();
+                            pos.add(dx, dy, dz);
+                            pos.x = roundFloat(pos.x, 3);
+                            pos.y = roundFloat(pos.y, 3);
+                            pos.z = roundFloat(pos.z, 3);
+                        });
                     });
                 })
                 .addItem(itm(Material.GRAY_WOOL, "RESET POS"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, true, false, 0);
+                    itm.click(pi -> {
+                        editbonebone(p, decoId, boneId, bone -> {
+                            Vector3f pos = bone.getPosition();
+                            pos.set(new Vector3f());
+                        });
                     });
                 })
                 .addItem(itm(Material.REDSTONE_LAMP, "IS VISIBLE"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 2);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, false, 1);
+                    itm.click(pi -> {
+                        editbonebone(p, decoId, boneId, bone -> {
+                            bone.setVisible(pi.getAction().name().contains("LEFT"));
+                        });
                     });
                 })
                 .addItem(itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0.1, 0, 0, 0, false, false, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, -0.1, 0, 0, 0, false, false, 0);
+                    itm.click(pi -> {
+                        editbonebone(p, decoId, boneId, bone -> {
+                            double dscale = pi.getAction().name().contains("LEFT") ? -0.1 : 0.1;
+                            bone.setScale(Math.max(0, roundFloat((float) (bone.getScale() + dscale), 3)));
+                        });
                     });
                 })
                 .addItem(itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 11.25f, 0, 0, false, false, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, -11.25f, 0, 0, false, false, 0);
+                    itm.click(pi -> {
+                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                        editboneboneRotate(p, decoId, boneId, drot, 0, 0);
                     });
                 })
                 .addItem(itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 11.25f, 0, false, false, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, -11.25f, 0, false, false, 0);
+                    itm.click(pi -> {
+                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                        editboneboneRotate(p, decoId, boneId, 0, drot, 0);
                     });
                 })
                 .addItem(itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 11.25f, false, false, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, -11.25f, false, false, 0);
+                    itm.click(pi -> {
+                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                        editboneboneRotate(p, decoId, boneId, 0, 0, drot);
                     });
                 })
                 .addItem(itm(Material.BLACK_WOOL, "RESET ROTATE"), itm -> {
-                    itm.leftClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
-                    }).rightClick(() -> {
-                        editbonebone(p, decoId, boneId, 0, 0, 0, 0, 0, 0, 0, false, true, 0);
+                    itm.click(pi -> {
+                        editbonebone(p, decoId, boneId, bone -> bone.getRotation().set(new Quaternionf()));
+                    });
+                })
+                .addItem(itm(Material.ITEM_FRAME, "SET ITEM MODEL"), itm -> {
+                    itm.click(pi -> {
+                        Gui gui = Gui.gui().enableAllInteractions().title(Component.text("Set item")).rows(1).create();
+                        gui.setCloseGuiAction(e -> {
+                            ItemStack stack = Arrays.stream(e.getInventory().getStorageContents()).filter(Objects::nonNull).findFirst().orElse(null);
+                            if (stack != null)
+                                editbonebone(p, decoId, boneId, bone -> bone.setModelItem(new StaticDecoList.StaticDeco.ModelTransformation.ModelItem(stack)));
+                            else
+                                p.sendMessage("§cYou need to add an item to the gui to set the itemModel!");
+                        });
+                        gui.open(p);
                     });
                 })
                 .init();
@@ -675,12 +670,13 @@ public class MegDecorationCommand {
         int count = 0;
         for (List<StaticDecoration> l : DecorationManager.getInstance().getStaticDecoMap().values())
             count += l.size();
-        sender.sendMessage(new String[]{
+        sender.sendMessage(
                 "§8[§6ModelEngineDecoration§8]",
                 "§7Version: " + SpawnDecorationPlugin.version,
                 "§7Records: " + RecordLocationManager.records.size(),
                 "§7TrackedDecorations: " + DecorationManager.getInstance().getTrackedDecoMap().size(),
                 "§7StaticDecorations: " + count,
+                "§7Status: §f" + SpawnDecorationConfig.getStatus(),
                 "§f- §7/megdecoration record <newRecordName>",
                 "§f- §7/megdecoration deco §fShow GUI to get static decos",
                 "§f- §7/megdecoration reload §fReload decos",
@@ -689,7 +685,9 @@ public class MegDecorationCommand {
                 "§f- §7/megdecoration paste §fPaste static decos from deco clipboard",
                 "§f- §7/megdecoration list <modelId(optional)> §fList all deco",
                 "§f- §7/megdecoration purge <modelId> §fPurge static decos from all the worls",
-        });
+                "§f- §7/megdecoration moverotate §fEdit the nearest decoration to move/rotate/scale",
+                "§f- §7/megdecoration editbone §fEdit the nearest decoration specified bone to move/rotate/scale/..."
+        );
     }
 
     private ItemModelData getRelevantDataFromBlueprint(ModelBlueprint blueprint) {
