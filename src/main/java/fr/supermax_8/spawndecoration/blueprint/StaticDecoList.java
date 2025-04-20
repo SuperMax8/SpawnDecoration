@@ -139,7 +139,7 @@ public class StaticDecoList {
                     ItemMeta itemMeta = itemStack.getItemMeta();
                     if (itemModel != null) itemMeta.setItemModel(NamespacedKey.fromString(itemModel));
                     if (enchanted) itemMeta.addEnchant(Enchantment.SHARPNESS, 1, true);
-                    customModelData.fill(itemMeta.getCustomModelDataComponent());
+                    customModelData.fill(itemMeta);
                     itemStack.setItemMeta(itemMeta);
                     return itemStack;
                 }
@@ -166,6 +166,12 @@ public class StaticDecoList {
                         flags = component.getFlags();
                         strings = component.getStrings();
                         colors = component.getColors();
+                    }
+
+                    public void fill(ItemMeta itemMeta) {
+                        CustomModelDataComponent customModelDataComponent = itemMeta.getCustomModelDataComponent();
+                        fill(customModelDataComponent);
+                        itemMeta.setCustomModelDataComponent(customModelDataComponent);
                     }
 
                     public void fill(CustomModelDataComponent component) {
