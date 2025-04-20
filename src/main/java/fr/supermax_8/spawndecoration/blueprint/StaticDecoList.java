@@ -36,6 +36,7 @@ public class StaticDecoList {
         private String modelId;
 
         private String defaultAnimation;
+        private double defaultAnimationSpeed;
         private double scale;
         private Quaternionf rotation;
         private int blockLight;
@@ -50,6 +51,7 @@ public class StaticDecoList {
             scale = 1.0;
             blockLight = -1;
             skyLight = -1;
+            defaultAnimationSpeed = 1.0;
         }
 
         public void setBukkitLocation(Location location) {

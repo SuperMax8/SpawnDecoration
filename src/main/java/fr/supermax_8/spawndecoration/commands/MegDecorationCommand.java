@@ -1,6 +1,7 @@
 package fr.supermax_8.spawndecoration.commands;
 
 import com.github.retrooper.packetevents.util.MathUtil;
+import com.google.common.base.Preconditions;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.assets.ItemModelData;
 import com.ticxo.modelengine.api.generator.blueprint.BlueprintBone;
@@ -86,6 +87,28 @@ public class MegDecorationCommand {
                 if (!deco.getId().equals(uuid))
                     continue;
                 deco.setDefaultAnimation(finalAnimation);
+                break;
+            }
+        });
+    }
+
+    @Subcommand({"setdefaultanimationspeed", "setdanimspeed"})
+    public void setDefaultAnimationSpeed(Player p, double speed) {
+        StaticDecoration closest = getClosestDeco(p.getLocation());
+        if (closest == null) {
+            p.sendMessage("§cThere is no close decoration !");
+            return;
+        }
+        if (speed <= 0) {
+            p.sendMessage("§cCan't set speed to zero ! If you want no default animation set it to \"\"");
+            return;
+        }
+        UUID uuid = closest.getUuid();
+        DecorationManager.getInstance().editStaticDecos(staticDecoList -> {
+            for (StaticDecoList.StaticDeco deco : staticDecoList.getList()) {
+                if (!deco.getId().equals(uuid))
+                    continue;
+                deco.setDefaultAnimationSpeed(speed);
                 break;
             }
         });

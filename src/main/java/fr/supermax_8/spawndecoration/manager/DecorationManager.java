@@ -80,6 +80,7 @@ public class DecorationManager {
                 if (staticDeco.getId() == null) staticDeco.setId(UUID.randomUUID());
                 if (staticDeco.getRotation() == null) staticDeco.setRotation(new Quaternionf());
                 if (staticDeco.getScale() <= 0) staticDeco.setScale(1);
+                if (staticDeco.getDefaultAnimationSpeed() <= 0) staticDeco.setDefaultAnimationSpeed(1);
             });
             return list;
         } catch (Exception e) {

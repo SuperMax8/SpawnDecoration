@@ -22,28 +22,31 @@ import java.util.function.Consumer;
 @Getter
 public class StaticDecoration extends Decoration {
 
+    private static final Quaternionf ZERO = new Quaternionf();
+
     @Getter
     private static final ConcurrentHashMap<Location, StaticDecoration> barrierHitboxBlocks = new ConcurrentHashMap<>();
-    private final Quaternionf modelRotation;
     private List<Location> lights;
 
     public StaticDecoration(StaticDecoList.StaticDeco deco) {
-        this(deco.getId(), deco.getModelId(), deco.getDefaultAnimation(), deco.getBukkitLocation(), deco.getScale(), deco.getBlockLight(), deco.getSkyLight(), deco.getRotation(), deco.getTexts(), deco.getBoneTransformations());
+        this(deco.getId(), deco.getModelId(), deco.getDefaultAnimation(), deco.getDefaultAnimationSpeed(), deco.getBukkitLocation(), deco.getScale(), deco.getBlockLight(), deco.getSkyLight(), deco.getRotation(), deco.getTexts(), deco.getBoneTransformations());
     }
 
-    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, Location location, double scale, int blockLight, int skyLight, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
+    public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, double defaultAnimationSpeed, Location location, double scale, int blockLight, int skyLight, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
         super(uuid, modelId, location, null, texts);
 
-        modelRotation = new Quaternionf(rotation);
         activeModel.setScale(scale);
+        if (!rotation.equals(ZERO)) {
+            // Find the parent bone
+            activeModel.getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
+                SimpleManualAnimator anim = new SimpleManualAnimator();
+                anim.getRotation().set(rotation);
+                bone.setManualAnimator(anim);
+                bone.tick();
+            });
+        }
         if (blockLight > 0) activeModel.setBlockLight(blockLight);
         if (skyLight > 0) activeModel.setSkyLight(skyLight);
-        activeModel.getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
-            SimpleManualAnimator anim = new SimpleManualAnimator();
-            anim.getRotation().set(rotation);
-            bone.setManualAnimator(anim);
-            bone.tick();
-        });
 
         if (boneTransformations != null)
             boneTransformations.forEach((k, v) -> {
@@ -59,8 +62,8 @@ public class StaticDecoration extends Decoration {
                 });
             });
 
-        if (defaultAnimation != null)
-            activeModel.getAnimationHandler().setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defaultAnimation, 0.1, 0.1, 1));
+        String defAnim = defaultAnimation != null ? defaultAnimation : "idle";
+        animationHandler.setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defAnim, 0.1, 0.1, defaultAnimationSpeed));
 
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();
