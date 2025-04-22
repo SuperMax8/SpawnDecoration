@@ -49,6 +49,7 @@ public class StaticDecoList {
             this.location = SerializationMethods.serializedLocation(location);
             this.modelId = modelId;
             scale = 1.0;
+            rotation = new Quaternionf();
             blockLight = -1;
             skyLight = -1;
             defaultAnimationSpeed = 1.0;
