@@ -190,45 +190,53 @@ public class MegDecorationCommand {
         PaginatedHotbarEditor editor = new PaginatedHotbarEditor(p)
                 .addItem(itm(Material.RED_WOOL, "MOVE X"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        double delta = e.getPlayer().isSneaking() ? 0.01 : 0.1;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editmove(p, id, delta, 0, 0);
                     });
                 })
                 .addItem(itm(Material.ORANGE_WOOL, "MOVE Y"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        double delta = e.getPlayer().isSneaking() ? 0.01 : 0.1;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editmove(p, id, 0, delta, 0);
                     });
                 })
                 .addItem(itm(Material.YELLOW_WOOL, "MOVE Z"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        double delta = e.getPlayer().isSneaking() ? 0.01 : 0.1;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editmove(p, id, 0, 0, delta);
                     });
                 })
                 .addItem(itm(Material.MAGENTA_GLAZED_TERRACOTTA, "SCALE"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 0.1 : -0.1;
+                        double delta = e.getPlayer().isSneaking() ? 0.01 : 0.1;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
+                        double finalDelta = delta;
                         editdeco(p, id, deco -> {
-                            deco.setScale(deco.getScale() + delta);
+                            deco.setScale(deco.getScale() + finalDelta);
                         });
                     });
                 })
                 .addItem(itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        double delta = e.getPlayer().isSneaking() ? 1 : 11.25;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editrotate(p, id, delta, 0, 0);
                     });
                 })
                 .addItem(itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        double delta = e.getPlayer().isSneaking() ? 1 : 11.25;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editrotate(p, id, 0, delta, 0);
                     });
                 })
                 .addItem(itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
                     itm.click(e -> {
-                        double delta = e.getAction().name().contains("LEFT") ? 11.25 : -11.25;
+                        double delta = e.getPlayer().isSneaking() ? 1 : 11.25;
+                        delta = e.getAction().name().contains("LEFT") ? delta : -delta;
                         editrotate(p, id, 0, 0, delta);
                     });
                 })
@@ -309,9 +317,10 @@ public class MegDecorationCommand {
                         Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(TMath.wrapDegree(yaw + (pi.getAction().name().contains("LEFT") ? 180 : 0))));
                         rotation.transform(moveVec);
 
-                        float dx = Math.round(moveVec.x()) * 0.1f;
-                        float dy = Math.round(moveVec.y()) * 0.1f;
-                        float dz = Math.round(moveVec.z()) * 0.1f;
+                        float mul = p.isSneaking() ? 0.01f : 0.1f;
+                        float dx = Math.round(moveVec.x()) * mul;
+                        float dy = Math.round(moveVec.y()) * mul;
+                        float dz = Math.round(moveVec.z()) * mul;
 
                         editbonebone(p, decoId, boneId, bone -> {
                             Vector3f pos = bone.getPosition();
@@ -346,20 +355,23 @@ public class MegDecorationCommand {
                     });
                 })
                 .addItem(itm(Material.PURPLE_WOOL, "ROTATE X"), itm -> {
-                    itm.click(pi -> {
-                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                    itm.click(e -> {
+                        float drot = e.getPlayer().isSneaking() ? 1f : 11.25f;
+                        drot = e.getAction().name().contains("LEFT") ? drot : -drot;
                         editboneboneRotate(p, decoId, boneId, drot, 0, 0);
                     });
                 })
                 .addItem(itm(Material.MAGENTA_WOOL, "ROTATE Y"), itm -> {
-                    itm.click(pi -> {
-                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                    itm.click(e -> {
+                        float drot = e.getPlayer().isSneaking() ? 1f : 11.25f;
+                        drot = e.getAction().name().contains("LEFT") ? drot : -drot;
                         editboneboneRotate(p, decoId, boneId, 0, drot, 0);
                     });
                 })
                 .addItem(itm(Material.PINK_WOOL, "ROTATE Z"), itm -> {
-                    itm.click(pi -> {
-                        float drot = pi.getAction().name().contains("LEFT") ? 11.25f : -11.25f;
+                    itm.click(e -> {
+                        float drot = e.getPlayer().isSneaking() ? 1f : 11.25f;
+                        drot = e.getAction().name().contains("LEFT") ? drot : -drot;
                         editboneboneRotate(p, decoId, boneId, 0, 0, drot);
                     });
                 })
