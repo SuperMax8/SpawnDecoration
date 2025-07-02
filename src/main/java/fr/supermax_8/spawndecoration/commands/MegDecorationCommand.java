@@ -1,7 +1,6 @@
 package fr.supermax_8.spawndecoration.commands;
 
 import com.github.retrooper.packetevents.util.MathUtil;
-import com.google.common.base.Preconditions;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.assets.ItemModelData;
 import com.ticxo.modelengine.api.generator.blueprint.BlueprintBone;
@@ -21,6 +20,7 @@ import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import fr.supermax_8.spawndecoration.manager.RecordLocationManager;
 import fr.supermax_8.spawndecoration.manager.WEClipboardManager;
+import fr.supermax_8.spawndecoration.utils.ChatEditor;
 import fr.supermax_8.spawndecoration.utils.PaginatedHotbarEditor;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -285,6 +285,7 @@ public class MegDecorationCommand {
                 editor.sendMessage("§8- §7Scale: §6" + transformation.getScale());
                 editor.sendMessage("§8- §7Visible: §6" + transformation.isVisible());
                 editor.sendMessage("§8- §7ItemModel: §6" + (transformation.getModelItem() == null ? "null" : transformation.getModelItem().toString()));
+                editor.sendMessage("§8- §7Color: §6" + (transformation.getColor() == null ? "null" : transformation.getColor().toString()));
                 bones.put(boneId, transformation);
                 deco.setBoneTransformations(bones);
                 break;
@@ -393,7 +394,28 @@ public class MegDecorationCommand {
                         gui.open(p);
                     });
                 })
+                .addItem(itm(Material.WHITE_WOOL, "SET COLOR"), itm -> {
+                    itm.click(pi -> {
+                        new ChatEditor(pi.getPlayer(), resp -> {
+                            editbonebone(p, decoId, boneId, bone -> bone.setColor(hexToBukkitColor(resp.get(0))));
+                        }).ask("§6Enter hex color in chat").init();
+                    });
+                })
                 .init();
+    }
+
+    public static Color hexToBukkitColor(String hex) {
+        // Remove leading '#' if present
+        if (hex.startsWith("#")) {
+            hex = hex.substring(1);
+        }
+
+        // Parse RGB components
+        int r = Integer.parseInt(hex.substring(0, 2), 16);
+        int g = Integer.parseInt(hex.substring(2, 4), 16);
+        int b = Integer.parseInt(hex.substring(4, 6), 16);
+
+        return Color.fromRGB(r, g, b);
     }
 
     @Subcommand({"editbone"})

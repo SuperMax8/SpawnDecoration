@@ -98,6 +98,7 @@ public class StaticDecoList {
             private Vector3f position;
             private Quaternionf rotation;
             private ModelItem modelItem;
+            private Color color;
 
             public ModelTransformation() {
                 visible = true;
@@ -105,6 +106,7 @@ public class StaticDecoList {
                 position = new Vector3f();
                 rotation = new Quaternionf();
                 modelItem = null;
+                color = null;
             }
 
             @Override

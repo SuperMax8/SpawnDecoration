@@ -57,6 +57,8 @@ public class StaticDecoration extends Decoration {
                     anim.getScale().set(v.getScale());
                     bone.setManualAnimator(anim);
                     bone.setVisible(v.isVisible());
+                    if (v.getColor() != null)
+                        bone.setDefaultTint(v.getColor());
                     if (v.getModelItem() != null) bone.setModel(v.getModelItem().createStack());
                     bone.tick();
                 });
