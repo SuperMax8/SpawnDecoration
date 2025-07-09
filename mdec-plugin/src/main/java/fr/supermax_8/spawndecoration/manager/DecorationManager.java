@@ -2,7 +2,7 @@ package fr.supermax_8.spawndecoration.manager;
 
 import com.google.gson.Gson;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import fr.supermax_8.spawndecoration.blueprint.Decoration;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
@@ -32,7 +32,7 @@ public class DecorationManager {
 
     public DecorationManager() {
         instance = this;
-        Bukkit.getScheduler().runTaskTimerAsynchronously(SpawnDecorationPlugin.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(ModelEngineDecorationPlugin.getInstance(), () -> {
             for (Decoration decoration : decorations.values())
                 decoration.tick();
         }, 0, 0);
@@ -60,7 +60,7 @@ public class DecorationManager {
     }
 
     public void writeStaticDecos(StaticDecoList list) {
-        File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
+        File pluginDir = ModelEngineDecorationPlugin.getInstance().getDataFolder();
         File staticDecorations = new File(pluginDir, "staticDecorations.json");
         try (FileWriter writer = new FileWriter(staticDecorations)) {
             writer.write(new Gson().toJson(list));
@@ -70,7 +70,7 @@ public class DecorationManager {
     }
 
     public StaticDecoList readStaticDecos() {
-        File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
+        File pluginDir = ModelEngineDecorationPlugin.getInstance().getDataFolder();
         File staticDecorations = new File(pluginDir, "staticDecorations.json");
         if (!staticDecorations.exists()) return new StaticDecoList(new ArrayList<>());
         try (FileReader reader = new FileReader(staticDecorations)) {

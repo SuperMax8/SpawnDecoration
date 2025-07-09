@@ -53,7 +53,7 @@ public class SpawnDecorationConfig {
     public static synchronized void load() {
         status = Status.LOADING;
         RecordLocationManager.load();
-        File pluginDir = SpawnDecorationPlugin.getInstance().getDataFolder();
+        File pluginDir = ModelEngineDecorationPlugin.getInstance().getDataFolder();
 
         particle.clear();
         text.clear();

@@ -13,8 +13,9 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import fr.supermax_8.spawndecoration.ModelEngineDecoration;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
@@ -720,7 +721,7 @@ public class MegDecorationCommand {
         TextComponent textComponent = Component.text("§6§l" + st.getModelId() + " §8: §7" + st.getLocation())
                 .hoverEvent(HoverEvent.showText(Component.text("Click to teleport")))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/mdec teleport " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()));
-        BukkitAudiences.builder(SpawnDecorationPlugin.getInstance()).build().sender(p).sendMessage(textComponent);
+        BukkitAudiences.builder(ModelEngineDecorationPlugin.getInstance()).build().sender(p).sendMessage(textComponent);
     }
 
     private void sendHelp(CommandSender sender) {
@@ -729,7 +730,7 @@ public class MegDecorationCommand {
             count += l.size();
         sender.sendMessage(
                 "§8[§6ModelEngineDecoration§8]",
-                "§7Version: " + SpawnDecorationPlugin.version,
+                "§7Version: " + ModelEngineDecoration.version,
                 "§7Records: " + RecordLocationManager.records.size(),
                 "§7TrackedDecorations: " + DecorationManager.getInstance().getTrackedDecoMap().size(),
                 "§7StaticDecorations: " + count,

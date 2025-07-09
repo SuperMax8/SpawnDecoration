@@ -1,6 +1,6 @@
 package fr.supermax_8.spawndecoration.utils;
 
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 public class Scheduler {
 
     private static final BukkitScheduler scheduler = Bukkit.getScheduler();
-    private static final Plugin main = SpawnDecorationPlugin.getInstance();
+    private static final Plugin main = ModelEngineDecorationPlugin.getInstance();
 
 
     public static void runSync(Consumer<BukkitTask> run) {

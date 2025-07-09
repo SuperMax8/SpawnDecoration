@@ -1,6 +1,6 @@
 name: ModelEngineDecoration
 version: '${project.version}'
-main: fr.supermax_8.spawndecoration.SpawnDecorationPlugin
+main: fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin
 api-version: 1.16
 depend: [ModelEngine]
 softdepend:

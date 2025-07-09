@@ -1,6 +1,6 @@
 package fr.supermax_8.spawndecoration.utils;
 
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import lombok.Builder;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -47,7 +47,7 @@ public class PaginatedHotbarEditor {
             init.accept(this);
         if (parent != null) {
             parent.unload();
-            Bukkit.getScheduler().runTaskLater(SpawnDecorationPlugin.getInstance(), this::init, 2);
+            Bukkit.getScheduler().runTaskLater(ModelEngineDecorationPlugin.getInstance(), this::init, 2);
         } else
             init();
     }
@@ -186,7 +186,7 @@ public class PaginatedHotbarEditor {
         player.sendMessage("§cEnd edition");
         if (close != null) close.run();
         if (parent != null)
-            Bukkit.getScheduler().runTaskLater(SpawnDecorationPlugin.getInstance(), parent::init, 1);
+            Bukkit.getScheduler().runTaskLater(ModelEngineDecorationPlugin.getInstance(), parent::init, 1);
     }
 
     @Builder

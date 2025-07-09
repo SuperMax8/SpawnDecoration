@@ -20,12 +20,10 @@ should be generaly the head so put **h_** in the front of the head bone name
 you can animate the model if you created a idle animation
 
 **Notes:**  
-I've developed this plugin in 20 min, if you find bug mp me
-Obviously this plugin uses modelengine as dependency
-You can create sub folder inside **recordlocation** and **decorations** folder
+If you find bug mp me
+Obviously this plugin uses modelengine as a dependency  
+You can create a subfolder inside the **recordlocation** and **decorations** folder
 as much as you want to organise all your files
-The plugin don't use packet, and the teleportation turn syncronously (you shouldn't have performance impact btw all the locations is in cache, just every decoration is teleported every tick)
-Currently only work in 1.19 (I don't test other versions) at the base for my personal use but if you are interested use it
 
 Example of decoration configuration:
 

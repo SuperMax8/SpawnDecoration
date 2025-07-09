@@ -1,0 +1,12 @@
+# ModelEngine decoration
+
+# Default render distance of static and tracked decorations
+renderRadius: 128
+
+# Use a megcombined.json model (full model display in deco gui)
+# To use this feature, go to the plugin folder, take the python script and put it in your texturepack folder,
+# then execute it when you update modelengine
+megcombined: false
+
+# DON'T MODIFY
+config-version: 2

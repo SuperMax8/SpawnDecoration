@@ -4,7 +4,7 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.mount.controller.MountController;
 import com.ticxo.modelengine.api.nms.impl.EmptyMoveController;
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -23,7 +23,7 @@ public class DriverManager {
     }
 
     public void initTask() {
-        Bukkit.getScheduler().runTaskTimer(SpawnDecorationPlugin.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskTimer(ModelEngineDecorationPlugin.getInstance(), () -> {
             for (ActiveModel model : new LinkedList<>(activeModels)) {
                 if (model.isRemoved() || model.isDestroyed()) activeModels.remove(model);
                 model.getMountManager().ifPresent(mountManager -> {

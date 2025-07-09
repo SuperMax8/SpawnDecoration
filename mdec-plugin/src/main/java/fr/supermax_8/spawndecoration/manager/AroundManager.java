@@ -1,6 +1,6 @@
 package fr.supermax_8.spawndecoration.manager;
 
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -31,8 +31,8 @@ public class AroundManager implements Runnable, Listener {
     private double biggestRadius = 0;
 
     public AroundManager() {
-        Bukkit.getScheduler().runTaskTimer(SpawnDecorationPlugin.getInstance(), this, 0, 0);
-        SpawnDecorationPlugin.getInstance().getServer().getPluginManager().registerEvents(this, SpawnDecorationPlugin.getInstance());
+        Bukkit.getScheduler().runTaskTimer(ModelEngineDecorationPlugin.getInstance(), this, 0, 0);
+        ModelEngineDecorationPlugin.getInstance().getServer().getPluginManager().registerEvents(this, ModelEngineDecorationPlugin.getInstance());
     }
 
     @Override

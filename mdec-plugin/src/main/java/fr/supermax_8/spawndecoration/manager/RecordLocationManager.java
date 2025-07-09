@@ -1,6 +1,6 @@
 package fr.supermax_8.spawndecoration.manager;
 
-import fr.supermax_8.spawndecoration.SpawnDecorationPlugin;
+import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
 import fr.supermax_8.spawndecoration.utils.BukkitListener;
 import fr.supermax_8.spawndecoration.utils.FileUtils;
 import fr.supermax_8.spawndecoration.utils.SerializationMethods;
@@ -38,7 +38,7 @@ public class RecordLocationManager {
     }
 
     public static void load() {
-        File recordDir = new File(SpawnDecorationPlugin.getInstance().getDataFolder(), "recordlocation");
+        File recordDir = new File(ModelEngineDecorationPlugin.getInstance().getDataFolder(), "recordlocation");
         try {
             recordDir.mkdirs();
             for (File f : FileUtils.getFilesRecursively(recordDir)) {
@@ -64,11 +64,11 @@ public class RecordLocationManager {
                 Location pLoc = p.getLocation().clone();
                 locs.add(pLoc);
             }
-        }.runTaskTimer(SpawnDecorationPlugin.getInstance(), 0, 0);
+        }.runTaskTimer(ModelEngineDecorationPlugin.getInstance(), 0, 0);
 
         BukkitListener.registerPlayerListener(p, PlayerInteractEvent.class, e -> {
             try {
-                File recordDir = new File(SpawnDecorationPlugin.getInstance().getDataFolder(), "recordlocation");
+                File recordDir = new File(ModelEngineDecorationPlugin.getInstance().getDataFolder(), "recordlocation");
                 File record = new File(recordDir, recordName + ".yml");
                 if (!record.exists()) record.createNewFile();
                 FileConfiguration config = YamlConfiguration.loadConfiguration(record);
