@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-@CommandPermission("modelenginedecoration.use")
+@CommandPermission("mdec.use")
 @Command({"modelenginedecoration", "mdec", "hendek"})
 public class MegDecorationCommand {
 
@@ -64,14 +64,14 @@ public class MegDecorationCommand {
         sendHelp(actor.sender());
     }
 
-    @Subcommand("select")
+    /*@Subcommand("select")
     public void select(Player p) {
         DecorationManager.getInstance().getStaticDecoMap().values().forEach(sd -> {
             sd.forEach(staticDecoration -> {
                 getClosestDeco(p.getLocation());
             });
         });
-    }
+    }*/
 
     @Subcommand({"setdefaultanimation", "setdanim"})
     public void setDefaultAnimation(Player p, @SuggestWith(ModelAnimation.class) String animation) {
@@ -551,17 +551,19 @@ public class MegDecorationCommand {
         paginatedGui.open(p);
     }
 
-
+    @CommandPermission("mdec.worldedit")
     @Subcommand("copy")
     public void copy(Player p) {
         WEClipboardManager.copy(p, false);
     }
 
+    @CommandPermission("mdec.worldedit")
     @Subcommand("cut")
     public void cut(Player p) {
         WEClipboardManager.copy(p, true);
     }
 
+    @CommandPermission("mdec.worldedit")
     @Subcommand("paste")
     public void paste(Player p) {
         WEClipboardManager.paste(p);

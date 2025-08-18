@@ -121,7 +121,7 @@ public abstract class Decoration {
             for (Holo holo : holograms) {
                 ModelBone bone = holo.bone;
                 Location loc = holo.bone.getLocation();
-                Quaternionf leftMeg = bone.getTrueGlobalLeftRotation();
+                Quaternionf leftMeg = bone.getGlobalTransform().getSafeLeftQuaternion();
                 // I don't know why you have to reverse x and z for this to work, but it does
                 Quaternion4f left = new Quaternion4f(-leftMeg.x, leftMeg.y, -leftMeg.z, leftMeg.w);
                 holo.hologram.setLeftRotation(left);

@@ -3,6 +3,7 @@ package fr.supermax_8.spawndecoration.blueprint.meg;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.ticxo.modelengine.api.entity.BaseEntity;
 import com.ticxo.modelengine.api.entity.CullType;
 import com.ticxo.modelengine.api.entity.data.AbstractEntityData;
 import com.ticxo.modelengine.api.nms.impl.DummyTrackedEntity;
@@ -98,6 +99,11 @@ public class DummyDataSup extends AbstractEntityData {
     }
 
     @Override
+    public BaseEntity<?> getBaseEntity() {
+        return dummy;
+    }
+
+    @Override
     public boolean isDataValid() {
         return dummy.isAlive();
     }
@@ -118,6 +124,11 @@ public class DummyDataSup extends AbstractEntityData {
     }
 
     @Override
+    public Map<UUID, CullType> getMutableTracking() {
+        return Map.of();
+    }
+
+    @Override
     public Map<UUID, CullType> getTracking() {
         return ImmutableMap.copyOf(asyncTracking);
     }
@@ -130,6 +141,11 @@ public class DummyDataSup extends AbstractEntityData {
     @Override
     public boolean hasTracking() {
         return !this.asyncTracking.isEmpty();
+    }
+
+    @Override
+    public boolean isBaseGlowing() {
+        return false;
     }
 
     public int getRenderRadius() {

@@ -11,7 +11,7 @@ import static fr.supermax_8.spawndecoration.ModelEngineDecoration.log;
 public class LibLoader {
 
     private static final String[] libsLink = {
-            "https://github.com/SuperMax8/SpawnDecoration/releases/download/libs-1.5.0/mdec-libs-1.5.0.jar"
+            "https://github.com/SuperMax8/SpawnDecoration/releases/download/libs-1.5.1/mdec-libs-1.5.1.jar"
     };
 
     public static void loadExternalLibs(File dataFolder) throws IOException {

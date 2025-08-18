@@ -6,7 +6,7 @@
 
     <groupId>fr.supermax_8.spawndecoration</groupId>
     <artifactId>SpawnDecoration</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <packaging>pom</packaging>
 
     <name>ModelEngineDecoration</name>

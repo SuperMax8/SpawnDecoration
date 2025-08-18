@@ -74,7 +74,7 @@ public class InteractListener implements Listener {
             case ATTACK -> {
                 hit(player, staticDecoration);
 
-                if (!player.hasPermission("modelenginedecoration.use")) return;
+                if (!player.hasPermission("mdec.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) {
@@ -105,7 +105,7 @@ public class InteractListener implements Listener {
                 event.setCancelled(true);
                 hit(player, staticDecoration);
 
-                if (!player.hasPermission("modelenginedecoration.use")) return;
+                if (!player.hasPermission("mdec.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) return;
@@ -120,7 +120,7 @@ public class InteractListener implements Listener {
                     return;
                 }
 
-                if (!player.hasPermission("modelenginedecoration.use")) return;
+                if (!player.hasPermission("mdec.use")) return;
                 ItemStack stack = player.getInventory().getItemInMainHand();
                 String modelId = ItemNbt.getString(stack, "megdecoration_modelid");
                 if (modelId == null) return;
