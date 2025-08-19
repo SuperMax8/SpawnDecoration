@@ -70,22 +70,22 @@
                                     <pattern>me.tofaa</pattern>
                                     <shadedPattern>fr.supermax_8.spawndecoration.libs.meentitylib</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>dev.triumphteam</pattern>
-                                    <shadedPattern>fr.supermax_8.spawndecoration.libs.triumphteam</shadedPattern>
-                                </relocation>
+<!--                                <relocation>-->
+<!--                                    <pattern>dev.triumphteam</pattern>-->
+<!--                                    <shadedPattern>fr.supermax_8.spawndecoration.libs.triumphteam</shadedPattern>-->
+<!--                                </relocation>-->
                                 <relocation>
                                     <pattern>net.objecthunter</pattern>
                                     <shadedPattern>fr.supermax_8.spawndecoration.libs.objecthunter</shadedPattern>
                                 </relocation>
-                                <relocation>
+                              <!--  <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>fr.supermax_8.spawndecoration.libs.kyori</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.gson</pattern>
-                                    <shadedPattern>fr.supermax_8.spawndecoration.libs.gson</shadedPattern>
-                                </relocation>
+                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>com.google.gson</pattern>-->
+<!--                                    <shadedPattern>fr.supermax_8.spawndecoration.libs.gson</shadedPattern>-->
+<!--                                </relocation>-->
                                 <relocation>
                                     <pattern>revxrsal</pattern>
                                     <shadedPattern>fr.supermax_8.spawndecoration.libs.lamp</shadedPattern>
