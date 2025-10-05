@@ -12,6 +12,7 @@ import fr.supermax_8.spawndecoration.events.InteractStaticDecorationEvent;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -127,7 +128,13 @@ public class InteractListener implements Listener {
 
                 float playerYaw = player.getLocation().getYaw();
                 float yaw = Math.round(playerYaw / 45f) * 45f + 180;
-                Location loc = event.getClickedBlock().getLocation().clone().add(0.5, event.getBlockFace() == BlockFace.DOWN ? -1 : 1, 0.5);
+                Block b = event.getClickedBlock();
+                double y = player.rayTraceBlocks(5).getHitPosition().getY();
+                Location loc = b.getLocation().clone();
+                // Round to the nearest 0.5
+                double roundedY = Math.round(y * 2) / 2.0;
+                loc.setY(roundedY);
+                loc.add(0.5, event.getBlockFace() == BlockFace.DOWN ? -1 : 0, 0.5);
                 loc.setYaw(yaw);
                 if (DecorationManager.getInstance().getStaticDecoMap().values().stream().anyMatch(l ->
                         l.stream().anyMatch(s ->

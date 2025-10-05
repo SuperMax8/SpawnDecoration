@@ -111,7 +111,7 @@ public abstract class Decoration {
     }
 
     public void playAnimation(String animation) {
-        animationHandler.playAnimation(animation, 0.1, 0.1, 1, true);
+        animationHandler.playAnimation(animation, 0, 0, 1, true);
     }
 
     public void tick() {
