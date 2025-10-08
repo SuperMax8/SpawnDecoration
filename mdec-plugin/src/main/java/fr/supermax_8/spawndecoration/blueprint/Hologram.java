@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration.blueprint;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Quaternion4f;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
@@ -212,8 +213,10 @@ public class Hologram {
     }
 
     public void sendPacket(Player p, PacketWrapper<?>... packets) {
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(p);
+        if (user == null) return;
         for (PacketWrapper<?> wrapper : packets)
-            PacketEvents.getAPI().getPlayerManager().getUser(p).sendPacket(wrapper);
+            user.sendPacket(wrapper);
     }
 
 
