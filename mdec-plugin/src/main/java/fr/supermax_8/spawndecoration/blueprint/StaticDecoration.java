@@ -10,6 +10,7 @@ import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -35,6 +36,7 @@ public class StaticDecoration extends Decoration {
     public StaticDecoration(UUID uuid, String modelId, String defaultAnimation, double defaultAnimationSpeed, Location location, double scale, int blockLight, int skyLight, Quaternionf rotation, Map<String, List<String>> texts, Map<String, StaticDecoList.StaticDeco.ModelTransformation> boneTransformations) {
         super(uuid, modelId, location, null, texts);
 
+        modeledEntity.tick();
         activeModel.setScale(scale);
         if (!rotation.equals(ZERO)) {
             // Find the parent bone
@@ -67,9 +69,10 @@ public class StaticDecoration extends Decoration {
         String defAnim = defaultAnimation != null ? defaultAnimation : "idle";
         animationHandler.setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defAnim, 0.1, 0.1, defaultAnimationSpeed));
 
+        modeledEntity.tick();
+
         for (ModelBone bone : activeModel.getBones().values()) {
             String boneId = bone.getBoneId();
-            bone.tick();
             if (boneId.contains("light")) {
                 if (lights == null) lights = new ArrayList<>();
                 int level = StringUtils.extractAndParseDigits(boneId);

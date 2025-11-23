@@ -54,6 +54,7 @@ public abstract class Decoration {
 
         modeledEntity = ModelEngineAPI.createModeledEntity(dummy);
         modeledEntity.addModel(activeModel, true);
+        modeledEntity.tick();
 
         activeModel.getMountManager().ifPresent(mountManager -> {
             mountManager.setCanRide(true);
