@@ -203,6 +203,11 @@ public class DummySup<O> implements BaseEntity<O> {
     }
 
     @Override
+    public boolean isOnFire() {
+        return false;
+    }
+
+    @Override
     public boolean hurt(@Nullable HumanEntity player, Object nmsDamageCause, float damage) {
         return false;
     }

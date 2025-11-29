@@ -38,6 +38,10 @@ public class StaticDecoration extends Decoration {
 
         modeledEntity.tick();
         activeModel.setScale(scale);
+
+        String defAnim = defaultAnimation != null ? defaultAnimation : "idle";
+        animationHandler.setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defAnim, 0, 0, defaultAnimationSpeed));
+
         if (!rotation.equals(ZERO)) {
             // Find the parent bone
             activeModel.getBones().values().stream().filter(md -> md.getParent() == null).findFirst().ifPresent(bone -> {
@@ -65,9 +69,6 @@ public class StaticDecoration extends Decoration {
                     bone.tick();
                 });
             });
-
-        String defAnim = defaultAnimation != null ? defaultAnimation : "idle";
-        animationHandler.setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defAnim, 0.1, 0.1, defaultAnimationSpeed));
 
         modeledEntity.tick();
 
