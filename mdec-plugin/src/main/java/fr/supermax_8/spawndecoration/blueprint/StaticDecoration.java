@@ -7,10 +7,12 @@ import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import com.ticxo.modelengine.api.model.bone.SimpleManualAnimator;
 import com.ticxo.modelengine.core.animation.handler.StateMachineHandler;
+import fr.supermax_8.spawndecoration.utils.Scheduler;
 import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -79,33 +81,38 @@ public class StaticDecoration extends Decoration {
                 });
             });
 
-        modeledEntity.tick();
+        Object t = this;
+        Scheduler.runLater(() -> {
+            synchronized (t) {
+                if (removed) return;
 
-        for (ModelBone bone : activeModel.getBones().values()) {
-            String boneId = bone.getBoneId();
-            if (boneId.contains("light")) {
-                if (lights == null) lights = new ArrayList<>();
-                int level = StringUtils.extractAndParseDigits(boneId);
-                if (XMaterial.LIGHT.isSupported()) {
-                    Location loc = bone.getLocation().clone();
+                for (ModelBone bone : activeModel.getBones().values()) {
+                    String boneId = bone.getBoneId();
+                    if (boneId.contains("light")) {
+                        if (lights == null) lights = new ArrayList<>();
+                        int level = StringUtils.extractAndParseDigits(boneId);
+                        if (XMaterial.LIGHT.isSupported()) {
+                            Location loc = bone.getLocation().clone();
 
-                    Block block = loc.getBlock();
-                    if (!block.getType().isAir()) return;
+                            Block block = loc.getBlock();
+                            if (!block.getType().isAir()) return;
 
-                    BlockData data = XMaterial.LIGHT.parseMaterial().createBlockData();
-                    Levelled levelled = (Levelled) data;
-                    levelled.setLevel(level);
-                    block.setBlockData(levelled);
-                    lights.add(loc);
+                            BlockData data = XMaterial.LIGHT.parseMaterial().createBlockData();
+                            Levelled levelled = (Levelled) data;
+                            levelled.setLevel(level);
+                            block.setBlockData(levelled);
+                            lights.add(loc);
+                        }
+                    }
                 }
-            }
-        }
 
-        forEachHitboxBlocks(block -> {
-            if (!block.getType().isAir()) return;
-            block.setType(Material.BARRIER, false);
-            barrierHitboxBlocks.put(block.getLocation(), this);
-        });
+                forEachHitboxBlocks(block -> {
+                    if (!block.getType().isAir()) return;
+                    block.setType(Material.BARRIER, false);
+                    barrierHitboxBlocks.put(block.getLocation(), this);
+                });
+            }
+        }, 1);
     }
 
     @Override
@@ -115,17 +122,19 @@ public class StaticDecoration extends Decoration {
 
     @Override
     public void remove() {
-        super.remove();
-        forEachHitboxBlocks(block -> {
-            if (!block.getType().equals(Material.BARRIER)) return;
-            block.setType(Material.AIR, false);
-            barrierHitboxBlocks.remove(block.getLocation());
-        });
-        if (lights != null) {
-            for (Location location : lights) {
-                Block block = location.getBlock();
-                if (block.getType() != XMaterial.LIGHT.parseMaterial()) continue;
-                block.setType(Material.AIR);
+        synchronized (this) {
+            super.remove();
+            forEachHitboxBlocks(block -> {
+                if (!block.getType().equals(Material.BARRIER)) return;
+                block.setType(Material.AIR, false);
+                barrierHitboxBlocks.remove(block.getLocation());
+            });
+            if (lights != null) {
+                for (Location location : lights) {
+                    Block block = location.getBlock();
+                    if (block.getType() != XMaterial.LIGHT.parseMaterial()) continue;
+                    block.setType(Material.AIR);
+                }
             }
         }
     }
