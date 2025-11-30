@@ -1,16 +1,16 @@
 package fr.supermax_8.spawndecoration.blueprint;
 
 import com.cryptomorin.xseries.XMaterial;
-import com.ticxo.modelengine.api.animation.ModelState;
-import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
+import com.ticxo.modelengine.api.animation.BlueprintAnimation;
+import com.ticxo.modelengine.api.animation.property.IAnimationProperty;
 import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import com.ticxo.modelengine.api.model.bone.SimpleManualAnimator;
+import com.ticxo.modelengine.core.animation.handler.StateMachineHandler;
 import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -39,8 +39,17 @@ public class StaticDecoration extends Decoration {
         modeledEntity.tick();
         activeModel.setScale(scale);
 
-        String defAnim = defaultAnimation != null ? defaultAnimation : "idle";
-        animationHandler.setDefaultProperty(new AnimationHandler.DefaultProperty(ModelState.IDLE, defAnim, 0, 0, defaultAnimationSpeed));
+        if (defaultAnimation != null) {
+            IAnimationProperty prop = null;
+            if (animationHandler instanceof StateMachineHandler stateMachineHandler)
+                prop = stateMachineHandler.playAnimation(0, defaultAnimation, 0, 0, defaultAnimationSpeed, true);
+            else
+                animationHandler.playAnimation(defaultAnimation, 0, 0, defaultAnimationSpeed, true);
+            if (prop != null) {
+                prop.setForceLoopMode(BlueprintAnimation.LoopMode.LOOP);
+                prop.setForceOverride(BlueprintAnimation.OverrideMode.NONE);
+            }
+        }
 
         if (!rotation.equals(ZERO)) {
             // Find the parent bone

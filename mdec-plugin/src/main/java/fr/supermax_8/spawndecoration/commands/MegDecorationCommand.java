@@ -2,6 +2,7 @@ package fr.supermax_8.spawndecoration.commands;
 
 import com.github.retrooper.packetevents.util.MathUtil;
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.animation.property.IAnimationProperty;
 import com.ticxo.modelengine.api.generator.assets.ItemModelData;
 import com.ticxo.modelengine.api.generator.blueprint.BlueprintBone;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
@@ -9,13 +10,14 @@ import com.ticxo.modelengine.api.model.ModelRegistry;
 import com.ticxo.modelengine.api.model.bone.BoneBehaviorTypes;
 import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
 import com.ticxo.modelengine.api.utils.math.TMath;
+import com.ticxo.modelengine.core.animation.handler.StateMachineHandler;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import fr.supermax_8.spawndecoration.ModelEngineDecoration;
-import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
+import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
 import fr.supermax_8.spawndecoration.manager.DecorationManager;
@@ -90,6 +92,28 @@ public class MegDecorationCommand {
                 deco.setDefaultAnimation(finalAnimation);
                 break;
             }
+        });
+    }
+
+    @Subcommand("debug")
+    public void debug(Player p) {
+        StaticDecoration closest = getClosestDeco(p.getLocation());
+        if (closest == null) {
+            p.sendMessage("§cThere is no close decoration !");
+            return;
+        }
+        ((StateMachineHandler) closest.getAnimationHandler()).getStateMachines().forEach((prio, i) -> {
+            p.sendMessage("§8--§7priority: §d" + prio);
+            IAnimationProperty property = i.getCurrentAnimation();
+            if (property != null)
+                p.sendMessage("§8---§7currentAnimation §e" + property.getName() + " §7finished: §e" + property.isFinished() + " §7phase: §e" + property.getPhase());
+            else
+                p.sendMessage("§8---§7currentAnimation §eNULL");
+            property = i.getLastAnimation();
+            if (property != null)
+                p.sendMessage("§8---§7lastAnimation §e" + property.getName() + " §7finished: §e" + property.isFinished() + " §7phase: §e" + property.getPhase());
+            else
+                p.sendMessage("§8---§7lastAnimation §eNULL");
         });
     }
 

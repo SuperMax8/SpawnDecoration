@@ -2,7 +2,9 @@ package fr.supermax_8.spawndecoration.blueprint;
 
 import com.github.retrooper.packetevents.util.Quaternion4f;
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.animation.BlueprintAnimation;
 import com.ticxo.modelengine.api.animation.handler.AnimationHandler;
+import com.ticxo.modelengine.api.animation.property.IAnimationProperty;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
@@ -12,10 +14,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.TextDisplay;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +111,8 @@ public abstract class Decoration {
     }
 
     public void playAnimation(String animation) {
-        animationHandler.playAnimation(animation, 0, 0, 1, true);
+        IAnimationProperty prop = animationHandler.playAnimation(animation, 0, 0, 1, true);
+        if (prop != null) prop.setForceOverride(BlueprintAnimation.OverrideMode.OVERRIDE);
     }
 
     public void tick() {
