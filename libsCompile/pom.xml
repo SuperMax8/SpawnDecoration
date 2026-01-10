@@ -6,7 +6,7 @@
     <parent>
         <groupId>fr.supermax_8.spawndecoration</groupId>
         <artifactId>SpawnDecoration</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.3</version>
     </parent>
 
     <groupId>fr.supermax_8.mdeclibs</groupId>
