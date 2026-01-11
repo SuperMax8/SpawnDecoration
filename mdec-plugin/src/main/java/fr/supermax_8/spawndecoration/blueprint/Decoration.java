@@ -67,9 +67,12 @@ public abstract class Decoration {
             if (boneId.startsWith("particle")) {
                 if (particles == null) particles = new ArrayList<>();
 
-                List<String> spots = SpawnDecorationConfig.getParticle().get(boneId.split("_")[1]);
-                for (String spot : spots)
-                    particles.add(new ParticleSpot(spot, bone::getLocation));
+                String particleSpotId = boneId.split("_")[1];
+                List<String> spots = SpawnDecorationConfig.getParticle().get(particleSpotId);
+                if (spots != null)
+                    for (String spot : spots)
+                        particles.add(new ParticleSpot(spot, bone::getLocation));
+                else System.out.println("Particle Spot doesn't exist !! particleSpotId: " + particleSpotId);
             } else if (boneId.startsWith("text")) {
                 if (holograms == null) holograms = new ArrayList<>();
                 Location holoSpawn = bone.getLocation();
