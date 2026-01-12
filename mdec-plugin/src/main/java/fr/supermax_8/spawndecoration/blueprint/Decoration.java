@@ -10,6 +10,7 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.blueprint.meg.DummySup;
+import it.unimi.dsi.fastutil.Pair;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -31,7 +32,7 @@ public abstract class Decoration {
     protected final AnimationHandler animationHandler;
     protected final ModeledEntity modeledEntity;
     protected final String modelId;
-    protected ArrayList<ParticleSpot> particles;
+    protected ArrayList<Pair<ModelBone, ParticleSpot>> particles;
     protected ArrayList<Holo> holograms;
     protected boolean removed = false;
     // TextId : Lines<Text>
@@ -71,7 +72,7 @@ public abstract class Decoration {
                 List<String> spots = SpawnDecorationConfig.getParticle().get(particleSpotId);
                 if (spots != null)
                     for (String spot : spots)
-                        particles.add(new ParticleSpot(spot, bone::getLocation));
+                        particles.add(Pair.of(bone, new ParticleSpot(spot, bone::getLocation)));
                 else System.out.println("Particle Spot doesn't exist !! particleSpotId: " + particleSpotId);
             } else if (boneId.startsWith("text")) {
                 if (holograms == null) holograms = new ArrayList<>();
@@ -120,7 +121,11 @@ public abstract class Decoration {
 
     public void tick() {
         if (particles != null)
-            for (ParticleSpot particle : particles) particle.spawnParticle();
+            for (Pair<ModelBone, ParticleSpot> particle : particles) {
+                ModelBone parent = particle.first().getParent();
+                if (parent == null || !parent.isEffectivelyInvisible())
+                    particle.second().spawnParticle();
+            }
         if (holograms != null) {
             for (Holo holo : holograms) {
                 ModelBone bone = holo.bone;
