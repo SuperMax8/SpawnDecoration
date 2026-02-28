@@ -212,9 +212,9 @@
         <dependency>
             <groupId>com.ticxo.modelengine</groupId>
             <artifactId>ModelEngine</artifactId>
-            <version>R4.0.9</version>
+            <version>R4.1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/../libs/ModelEngine-R4.0.9.jar</systemPath>
+            <systemPath>${project.basedir}/../libs/ModelEngine-R4.1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.joml</groupId>

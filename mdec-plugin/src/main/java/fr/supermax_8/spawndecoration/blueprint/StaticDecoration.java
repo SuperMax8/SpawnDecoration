@@ -12,7 +12,6 @@ import fr.supermax_8.spawndecoration.utils.StringUtils;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -112,7 +111,7 @@ public class StaticDecoration extends Decoration {
                     barrierHitboxBlocks.put(block.getLocation(), this);
                 });
             }
-        }, 1);
+        }, 2);
     }
 
     @Override

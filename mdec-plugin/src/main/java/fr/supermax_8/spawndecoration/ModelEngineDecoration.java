@@ -2,7 +2,12 @@ package fr.supermax_8.spawndecoration;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.entity.Hitbox;
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
+import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorRegistry;
+import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
+import com.ticxo.modelengine.core.model.bone.behavior.SubHitboxImpl;
+import com.ticxo.modelengine.core.model.bone.render.SubHitboxRendererImpl;
 import fr.supermax_8.spawndecoration.blueprint.DriverManager;
 import fr.supermax_8.spawndecoration.commands.MegDecorationCommand;
 import fr.supermax_8.spawndecoration.listeners.InteractListener;
@@ -15,6 +20,7 @@ import me.tofaa.entitylib.EntityLib;
 import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.joml.Vector3f;
 import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -62,6 +68,19 @@ public class ModelEngineDecoration {
             plugin.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
+
+        BoneBehaviorType<SubHitboxImpl> build = BoneBehaviorType.Builder.of(SubHitboxImpl::new, null, "sub_hitbox")
+                .required("dimension", Hitbox.class)
+                .optional("obb", Boolean.class)
+                .optional("origin", Vector3f.class)
+                .optional("rotation", Vector3f.class)
+                .optional("cube_origin", Vector3f.class)
+                .renderType(SubHitboxRendererImpl::new)
+                .ignoreCubes()
+                .build();
+
+        BoneBehaviorRegistry boneBehavior = ModelEngineAPI.getAPI().getBoneBehaviorRegistry();
+
 
         if (!ModelEngineAPI.getAPI().getModelGenerator().isInitialized())
             BukkitListener.registerListener(ModelRegistrationEvent.class, e -> {

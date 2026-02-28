@@ -30,7 +30,7 @@ public class DummyDataSup extends AbstractEntityData {
     protected final Queue<UUID> stopTrackingQueue = new ConcurrentLinkedQueue<>();
     protected final Set<UUID> stopTracking = new HashSet<>();
     @Setter
-    protected Location location = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+    protected Location location = new Location(Objects.requireNonNull(Bukkit.getWorlds().get(0), "why no world in bukkit wtf ?"), 0, 0, 0);
 
     public DummyDataSup(DummySup<?> dummy) {
         this.dummy = dummy;

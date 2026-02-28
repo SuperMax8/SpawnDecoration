@@ -1,8 +1,9 @@
 package fr.supermax_8.spawndecoration.manager;
 
 import com.google.gson.Gson;
-import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
+import fr.supermax_8.spawndecoration.ModelEngineDecoration;
 import fr.supermax_8.spawndecoration.ModelEngineDecorationPlugin;
+import fr.supermax_8.spawndecoration.SpawnDecorationConfig;
 import fr.supermax_8.spawndecoration.blueprint.Decoration;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoList;
 import fr.supermax_8.spawndecoration.blueprint.StaticDecoration;
@@ -13,7 +14,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.joml.Quaternionf;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -50,6 +54,10 @@ public class DecorationManager {
         Objects.requireNonNull(staticDeco, "staticDeco cannot be null");
         List<StaticDecoration> decorations = staticDecoMap.computeIfAbsent(staticDeco.getModelId(), a -> new ArrayList<>());
         try {
+            if (staticDeco.getBukkitLocation().getWorld() == null) {
+                ModelEngineDecoration.log("Skipping loading of static decoration because world is null at : " + staticDeco.getLocation() + ", use /mdec purge if you want to delete decorations of no long existing world");
+                return;
+            }
             StaticDecoration d = new StaticDecoration(staticDeco);
             decorations.add(d);
             this.decorations.put(staticDeco.getId(), d);
