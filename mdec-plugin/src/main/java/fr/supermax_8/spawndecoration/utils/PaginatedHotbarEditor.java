@@ -117,13 +117,13 @@ public class PaginatedHotbarEditor {
 
         // Slot 0: Previous page
         if (currentPage > 0) {
-            ItemStack prev = createNamedItem(Material.ARROW, "§aPrevious Page");
+            ItemStack prev = createNamedItem(Material.PAPER, "§aPrevious Page");
             player.getInventory().setItem(0, prev);
         }
 
         // Slot 1: Next page
         if (endIndex < items.size()) {
-            ItemStack next = createNamedItem(Material.ARROW, "§aNext Page");
+            ItemStack next = createNamedItem(Material.PAPER, "§aNext Page");
             player.getInventory().setItem(1, next);
         }
 
